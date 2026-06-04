@@ -6,23 +6,26 @@ from app.models.user import User
 from sqlalchemy.exc import SQLAlchemyError
 
 
+# ============================
+# ✅ CREATE BOOKING
+# ============================
 def create_booking_service(db: Session, data):
+
     # ✅ Check room exists
     room = db.query(Room).filter(Room.name.ilike(data.room_name.strip())).first()
-
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
 
-    # ✅ Check user exists
-    user = db.query(User).filter(User.id == data.user_id).first()
+    # ✅ Get user using name
+    user = db.query(User).filter(User.name.ilike(data.user_name.strip())).first()
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # ✅ ✅ ✅ LIMIT: max 3 bookings per user per day
+    # ✅ ✅ ✅ LIMIT CHECK (MAX 3 BOOKINGS PER DAY)
     existing_count = (
         db.query(Booking)
-        .filter(Booking.user_id == data.user_id, Booking.date == data.date)
+        .filter(Booking.user_id == user.id, Booking.date == data.date)
         .count()
     )
 
@@ -49,14 +52,10 @@ def create_booking_service(db: Session, data):
             },
         )
 
-    # ✅ Time conversion
-    try:
-        start_time_obj = data.start_time
-        end_time_obj = data.end_time
-    except:
-        raise HTTPException(status_code=400, detail="Invalid time format")
-
     # ✅ Time validation
+    start_time_obj = data.start_time
+    end_time_obj = data.end_time
+
     if end_time_obj <= start_time_obj:
         raise HTTPException(status_code=400, detail="End time must be after start time")
 
@@ -77,9 +76,10 @@ def create_booking_service(db: Session, data):
             status_code=400, detail="Room already booked for this time slot"
         )
 
-    # ✅ Create booking
+    # ✅ Create booking (store BOTH)
     booking = Booking(
-        user_id=data.user_id,
+        user_id=user.id,
+        user_name=user.name,
         room_id=room.id,
         date=data.date,
         start_time=start_time_obj,
@@ -93,7 +93,7 @@ def create_booking_service(db: Session, data):
 
     return {
         "id": booking.id,
-        "user_name": user.name,
+        "user_name": booking.user_name,
         "room_name": room.name,
         "date": booking.date.strftime("%Y-%m-%d"),
         "start_time": booking.start_time.strftime("%H:%M"),
@@ -102,6 +102,9 @@ def create_booking_service(db: Session, data):
     }
 
 
+# ============================
+# ✅ GET BOOKINGS (Calendar uses this)
+# ============================
 def get_bookings_service(db: Session):
     try:
         bookings = db.query(Booking).all()
@@ -109,7 +112,7 @@ def get_bookings_service(db: Session):
         return [
             {
                 "id": b.id,
-                "user_name": b.user.name if b.user else "Unknown User",
+                "user_name": b.user_name,  # ✅ important for UI
                 "room_name": b.room.name if b.room else "Unknown Room",
                 "date": b.date.strftime("%Y-%m-%d") if b.date else None,
                 "start_time": b.start_time.strftime("%H:%M") if b.start_time else None,
@@ -126,6 +129,9 @@ def get_bookings_service(db: Session):
         raise HTTPException(status_code=500, detail="Unexpected error occurred")
 
 
+# ============================
+# ✅ DELETE BOOKING
+# ============================
 def delete_booking_service(db, booking_id: int):
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
 
@@ -140,20 +146,27 @@ def delete_booking_service(db, booking_id: int):
     return {"message": "Booking deleted successfully"}
 
 
+# ============================
+# ✅ UPDATE BOOKING
+# ============================
 def update_booking_service(db, booking_id: int, data):
+
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
 
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
 
-    # ✅ Update user
-    if hasattr(data, "user_id") and data.user_id is not None:
-        user = db.query(User).filter(User.id == data.user_id).first()
+    # ✅ Update user using name
+    if data.user_name:
+        user = db.query(User).filter(User.name.ilike(data.user_name.strip())).first()
+
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
-        booking.user_id = data.user_id
 
-    # ✅ Update fields
+        booking.user_id = user.id
+        booking.user_name = user.name
+
+    # ✅ Update other fields
     if data.date:
         booking.date = data.date
 
@@ -175,7 +188,7 @@ def update_booking_service(db, booking_id: int, data):
 
     return {
         "id": booking.id,
-        "user_name": booking.user.name,
+        "user_name": booking.user_name,
         "room_name": booking.room.name,
         "date": booking.date.strftime("%Y-%m-%d"),
         "start_time": booking.start_time.strftime("%H:%M"),

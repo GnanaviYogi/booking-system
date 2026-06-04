@@ -14,23 +14,54 @@ export default function ScheduleGrid({
     return h * 60 + (m || 0);
   };
 
+  // ✅ 12-hour format for booking time
+  const formatTime12 = (time?: string) => {
+    if (!time) return "";
+
+    const parts = time.split(":");
+    let h = Number(parts[0]);
+    let m = Number(parts[1]);
+
+    const ampm = h >= 12 ? "PM" : "AM";
+    const hour = h % 12 || 12;
+
+    return `${hour}:${m.toString().padStart(2, "0")} ${ampm}`;
+  };
+
+  // ✅ Header time format
+  const formatHeaderTime = (hour: number) => {
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const h = hour % 12 || 12;
+    return `${h}:00 ${ampm}`;
+  };
+
+  // ✅ ✅ Capitalize room names
+  const formatRoomName = (name: string) => {
+    return name
+      .split(" ")
+      .map(
+        (word) =>
+          word.charAt(0).toUpperCase() + word.slice(1)
+      )
+      .join(" ");
+  };
+
   return (
     <Paper sx={{ p: 2 }}>
 
-      {/* HEADER */}
+      {/* ✅ HEADER */}
       <Box display="grid" gridTemplateColumns={`120px repeat(${times.length},1fr)`}>
         <Box />
         {times.map((t: number) => (
           <Typography key={t} align="center" fontSize={12}>
-            {t}:00
+            {formatHeaderTime(t)}
           </Typography>
         ))}
       </Box>
 
-      {/* ROOMS */}
+      {/* ✅ ROOMS */}
       {rooms.map((room: any) => {
 
-        // ✅ ✅ MATCH BOOKINGS TO ROOM + DATE
         const roomBookings = bookings.filter((b: any) => {
           return (
             b.room_name?.toLowerCase().trim() === room.name?.toLowerCase().trim() &&
@@ -46,13 +77,13 @@ export default function ScheduleGrid({
             mt={1}
           >
 
+            {/* ✅ ✅ ROOM NAME FIX */}
             <Typography fontSize={13}>
-              {room.name}
+              {formatRoomName(room.name)}
             </Typography>
 
             {times.map((h: number, i: number) => {
 
-              // ✅ ✅ FIND BOOKING FOR SLOT
               const booking = roomBookings.find((b: any) => {
                 const start = toMinutes(b.start_time);
                 const end = toMinutes(b.end_time);
@@ -62,7 +93,6 @@ export default function ScheduleGrid({
                 return start < slotEnd && end > slotStart;
               });
 
-              // ✅ EMPTY SLOT
               if (!booking) {
                 return (
                   <Paper
@@ -76,7 +106,6 @@ export default function ScheduleGrid({
                 );
               }
 
-              // ✅ SHOW ONLY AT START
               const startHour = Math.floor(toMinutes(booking.start_time) / 60);
               if (h !== startHour) return null;
 
@@ -101,15 +130,17 @@ export default function ScheduleGrid({
                     textAlign: "center",
                   }}
                 >
-                  {/* ✅ SHOW REASON */}
+                  {/* ✅ REASON */}
                   <Typography fontSize={11} fontWeight="bold">
                     {booking.reason}
                   </Typography>
 
-                  {/* ✅ SHOW TIME */}
+                  {/* ✅ TIME */}
                   <Typography fontSize={10}>
-                    {booking.start_time.slice(0,5)} - {booking.end_time.slice(0,5)}
+                    {formatTime12(booking.start_time)} -{" "}
+                    {formatTime12(booking.end_time)}
                   </Typography>
+
                 </Paper>
               );
             })}

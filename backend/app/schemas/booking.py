@@ -5,7 +5,7 @@ from datetime import time, date as Datetype
 
 # Request
 class BookingCreate(BaseModel):
-    user_id: int
+    user_name: str
     room_name: str
     required_capacity: int
 
@@ -35,7 +35,7 @@ class BookingResponse(BaseModel):
 
 # Update
 class BookingUpdate(BaseModel):
-    user_id: Optional[int] = None
+    user_name: Optional[str] = None
     date: Optional[Datetype] = None
     start_time: Optional[time] = None
     end_time: Optional[time] = None

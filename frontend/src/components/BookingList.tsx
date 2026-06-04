@@ -5,7 +5,6 @@ import {
   useGetBookingsQuery,
   useGetRoomsQuery,
   useDeleteBookingMutation,
-  useUpdateBookingMutation,
 } from "@/services/api";
 
 import { Box, Paper, Typography, Button } from "@mui/material";
@@ -19,7 +18,6 @@ export default function BookingList() {
   const { data: bookings = [] } = useGetBookingsQuery(undefined);
   const { data: rooms = [] } = useGetRoomsQuery(undefined);
 
-  const [updateBooking] = useUpdateBookingMutation();
   const [deleteBooking] = useDeleteBookingMutation();
 
   const [selected, setSelected] = useState<any>(null);
@@ -31,7 +29,6 @@ export default function BookingList() {
 
   const times = Array.from({ length: 10 }, (_, i) => i + 8);
 
-  // ✅ ✅ ✅ ONLY FIX (LOCAL DATE — THIS WAS THE BUG)
   const getLocalDate = (d: Date) => {
     return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
       .toISOString()
@@ -39,9 +36,7 @@ export default function BookingList() {
   };
 
   const currentDateStr = getLocalDate(date);
-  // ✅ ✅ ✅ FIX END
 
-  // ✅ TIME FORMAT
   const formatTime = (time?: string) => {
     if (!time) return "";
     let [h, m] = time.split(":").map(Number);
@@ -50,11 +45,10 @@ export default function BookingList() {
     return `${hour}:${m.toString().padStart(2, "0")} ${ampm}`;
   };
 
-  // ✅ DATE SHIFT
   const shiftDate = (n: number) =>
     setDate(new Date(new Date(date).setDate(date.getDate() + n)));
 
-  // ✅ DELETE
+  // ✅ delete from grid
   useEffect(() => {
     if (selected?.delete) {
       const confirmDelete = window.confirm("Delete this booking?");
@@ -63,7 +57,7 @@ export default function BookingList() {
     }
   }, [selected, deleteBooking]);
 
-  // ✅ DOUBLE CLICK
+  // ✅ open form on double click
   useEffect(() => {
     if (selected?.prefill) {
       setShowForm(true);
@@ -86,12 +80,10 @@ export default function BookingList() {
           color: "white",
         }}
       >
-        {/* LEFT */}
         <Button variant="contained" onClick={() => shiftDate(-1)}>
           ⬅ Prev
         </Button>
 
-        {/* CENTER */}
         <Box display="flex" alignItems="center" gap={1}>
           <Typography fontWeight="bold">
             {date.toDateString()}
@@ -114,7 +106,6 @@ export default function BookingList() {
           />
         </Box>
 
-        {/* RIGHT */}
         <Box display="flex" gap={1}>
           <Button variant="contained" onClick={() => setDate(new Date())}>
             Today
@@ -123,6 +114,8 @@ export default function BookingList() {
           <Button variant="contained" onClick={() => shiftDate(1)}>
             Next ➡
           </Button>
+
+        
 
           <Button variant="contained" onClick={() => setShowSummary(true)}>
             📋 Bookings
@@ -141,9 +134,15 @@ export default function BookingList() {
         />
       </Box>
 
-      {/* FORM */}
+      {/* ✅ ✅ ✅ FINAL FIXED FORM */}
       <BookingModal open={showForm} onClose={() => setShowForm(false)}>
-        <BookingForm open={showForm} selected={selected} />
+        {showForm && (
+          <BookingForm
+            key={Date.now()}       // ✅ ALWAYS NEW FORM
+            open={showForm}
+            selected={null}        // ✅ REMOVE OLD PREFILL
+          />
+        )}
       </BookingModal>
 
       {/* SUMMARY */}
@@ -167,7 +166,7 @@ export default function BookingList() {
           </Typography>
 
           {bookings
-            .filter((b: any) => b.date?.split("T")[0] === currentDateStr) // ✅ FIX
+            .filter((b: any) => b.date?.split("T")[0] === currentDateStr)
             .map((b: any) => (
               <Box
                 key={b.id}
@@ -176,19 +175,38 @@ export default function BookingList() {
                   p: 1,
                   borderRadius: 2,
                   background: "#f1f4f9",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                 }}
               >
-                <Typography fontSize={13}>
-                  <b>{b.room_name}</b>
-                </Typography>
+                <Box>
+                  <Typography fontSize={13}>
+                    <b>{b.room_name}</b>
+                  </Typography>
 
-                <Typography fontSize={12}>
-                  {formatTime(b.start_time)} - {formatTime(b.end_time)}
-                </Typography>
+                  <Typography fontSize={12}>
+                    {formatTime(b.start_time)} - {formatTime(b.end_time)}
+                  </Typography>
 
-                <Typography fontSize={12}>
-                  👤 {b.user_name}
-                </Typography>
+                  <Typography fontSize={12}>
+                    👤 {b.user_name}
+                  </Typography>
+                </Box>
+
+                <Button
+                  size="small"
+                  color="error"
+                  sx={{ minWidth: "unset", padding: "4px" }}
+                  onClick={() => {
+                    const confirmDelete = window.confirm("Delete this booking?");
+                    if (confirmDelete) {
+                      deleteBooking(b.id);
+                    }
+                  }}
+                >
+                  ❌
+                </Button>
               </Box>
             ))}
 

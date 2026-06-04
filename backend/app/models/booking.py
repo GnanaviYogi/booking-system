@@ -9,6 +9,8 @@ class Booking(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     user_id = Column(Integer, ForeignKey("users.id"))
+    user_name = Column(String, nullable=False)  # ✅ FIXED
+
     room_id = Column(Integer, ForeignKey("rooms.id"))
 
     date = Column(Date, nullable=False)
