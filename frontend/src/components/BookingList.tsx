@@ -13,6 +13,7 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 
 import ScheduleGrid from "./ScheduleGrid";
 import BookingModal from "./BookingModal";
+import BookingForm from "./BookingForm"; // ✅ ADD THIS
 
 export default function BookingList() {
 
@@ -24,13 +25,15 @@ export default function BookingList() {
 
   const [selected, setSelected] = useState<any>(null);
   const [date, setDate] = useState<Date>(new Date());
-  const [showForm, setShowForm] = useState<boolean>(false);
+
+  const [showModal, setShowModal] = useState(false);   // ✅ EDIT
+  const [showCreateForm, setShowCreateForm] = useState(false); // ✅ CREATE
 
   const dateRef = useRef<HTMLInputElement>(null);
 
   const times = Array.from({ length: 10 }, (_, i) => i + 8);
 
-  // ✅ DATE FIX (SAFE LOCAL FORMAT)
+  // ✅ DATE FIX
   const getLocalDate = (d: Date) => {
     return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
       .toISOString()
@@ -61,13 +64,7 @@ export default function BookingList() {
           color: "white",
         }}
       >
-        <Button
-          variant="contained"
-          onClick={() => shiftDate(-1)}
-          sx={{ textTransform: "none" }}
-        >
-          ⬅ Prev
-        </Button>
+        <Button onClick={() => shiftDate(-1)}>⬅ Prev</Button>
 
         <Box display="flex" alignItems="center" gap={1}>
           <Typography fontWeight="bold">
@@ -92,35 +89,26 @@ export default function BookingList() {
         </Box>
 
         <Box display="flex" gap={1}>
-          <Button
-            variant="contained"
-            onClick={() => setDate(new Date())}
-            sx={{ textTransform: "none" }}
-          >
-            Today
-          </Button>
-
-          <Button
-            variant="contained"
-            onClick={() => shiftDate(1)}
-            sx={{ textTransform: "none" }}
-          >
-            Next ➡
-          </Button>
+          <Button onClick={() => setDate(new Date())}>Today</Button>
+          <Button onClick={() => shiftDate(1)}>Next ➡</Button>
         </Box>
       </Paper>
 
-      {/* GRID + BUTTON */}
+      {/* GRID */}
       <Box sx={{ flex: 1, p: 2, display: "flex", flexDirection: "column" }}>
         <ScheduleGrid
           rooms={rooms}
           bookings={bookings}
           times={times}
           currentDateStr={currentDateStr}
+
+          // ✅ EDIT FLOW
           onEdit={(booking: any) => {
-            setSelected(booking);   // ✅ EDIT MODE
-            setShowForm(true);
+            setSelected(booking);
+            setShowModal(true);
           }}
+
+          // ✅ DELETE
           onDelete={(id: number) => {
             if (confirm("Delete this booking?")) {
               deleteBooking(id);
@@ -128,29 +116,35 @@ export default function BookingList() {
           }}
         />
 
+        {/* ✅ CREATE BUTTON */}
         <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
           <Button
             variant="contained"
             onClick={() => {
-              setSelected(null);    // ✅ NEW BOOKING MODE
-              setShowForm(true);
+              setShowCreateForm(true); // ✅ NOW OPENS FORM
             }}
-            sx={{ textTransform: "none" }}
           >
             + Book Room
           </Button>
         </Box>
       </Box>
 
-      {/* MODAL */}
+      {/* ✅ CREATE FORM */}
+      {showCreateForm && (
+        <BookingForm
+          open={showCreateForm}
+          onClose={() => setShowCreateForm(false)}
+        />
+      )}
+
+      {/* ✅ EDIT MODAL */}
       <BookingModal
-        open={showForm}
+        open={showModal}
         onClose={() => {
-          setShowForm(false);
+          setShowModal(false);
           setSelected(null);
         }}
         selected={selected}
-        updateBooking={updateBooking}
       />
 
     </Box>

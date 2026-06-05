@@ -1,12 +1,16 @@
 "use client";
 
 import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography,
   TextField,
   Select,
   MenuItem,
-  Typography,
   Box,
-  Button,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import {
@@ -32,7 +36,7 @@ export default function BookingForm({ open, selected, onClose }: any) {
   const [endTime, setEndTime] = useState("");
   const [reason, setReason] = useState("");
 
-  // ✅ PREFILL
+  // ✅ PREFILL (optional reuse)
   useEffect(() => {
     if (selected?.prefill) {
       setRoomName(selected.room_name);
@@ -68,22 +72,19 @@ export default function BookingForm({ open, selected, onClose }: any) {
 
   const bookingCount = getBookingCount();
 
-  // ✅ ✅ ✅ FINAL HANDLE SUBMIT
+  // ✅ SUBMIT
   const handleSubmit = async () => {
 
-    // ✅ REQUIRED FIELDS
     if (!userName || !roomName || !capacity || !date || !startTime || !endTime || !reason) {
       enqueueSnackbar("Please fill all fields", { variant: "error" });
       return;
     }
 
-    // ✅ DAILY LIMIT
     if (bookingCount >= 3) {
       enqueueSnackbar("Max 3 bookings per day", { variant: "error" });
       return;
     }
 
-    // ✅ FRONTEND CAPACITY VALIDATION
     const selectedRoom = rooms.find((r: any) => r.name === roomName);
 
     if (!selectedRoom) {
@@ -96,7 +97,7 @@ export default function BookingForm({ open, selected, onClose }: any) {
 
     if (enteredCapacity > roomCapacity) {
       enqueueSnackbar(
-        `❌ ${roomName} supports only ${roomCapacity} people`,
+        `❌ ${roomName} supports only ${roomCapacity}`,
         { variant: "error" }
       );
       return;
@@ -113,32 +114,25 @@ export default function BookingForm({ open, selected, onClose }: any) {
         reason,
       }).unwrap();
 
-      // ✅ SUCCESS MESSAGE
       enqueueSnackbar("✅ Room booked successfully", {
         variant: "success",
         autoHideDuration: 3000,
       });
 
       onClose();
+      resetForm();
 
     } catch (err: any) {
       console.log("FULL ERROR:", err);
 
       let message = "Booking Failed";
 
-      // ✅ ✅ ✅ HANDLE FASTAPI ERROR STRUCTURE
       if (err?.data?.detail) {
-
-        // if string
         if (typeof err.data.detail === "string") {
           message = err.data.detail;
-        }
-
-        // if object
-        else if (typeof err.data.detail === "object") {
+        } else if (typeof err.data.detail === "object") {
           message = err.data.detail.message || message;
 
-          // ✅ show suggested rooms if available
           if (err.data.detail.suggested_rooms) {
             const suggested = err.data.detail.suggested_rooms
               .map((r: any) => r.room_name)
@@ -154,99 +148,101 @@ export default function BookingForm({ open, selected, onClose }: any) {
   };
 
   return (
-    <Box display="flex" flexDirection="column" gap={0.5}>
+    <Dialog open={open} onClose={onClose} fullWidth>
 
-      <Typography>User Name *</Typography>
-      <TextField
-        size="small"
-        value={userName}
-        onChange={(e) => setUserName(e.target.value)}
-      />
+      <DialogTitle>Book Room</DialogTitle>
 
-      <Typography color="error">
-        {bookingCount}/3 bookings
-      </Typography>
+      <DialogContent>
 
-      <Typography>Room *</Typography>
-      <Select
-        size="small"
-        value={roomName}
-        onChange={(e) => setRoomName(e.target.value)}
-      >
-        {rooms.map((r: any) => (
-          <MenuItem key={r.id} value={r.name}>
-            {r.name}
-          </MenuItem>
-        ))}
-      </Select>
+        <Box display="flex" flexDirection="column" gap={1} mt={1}>
 
-      <Typography>Capacity *</Typography>
-      <TextField
-        size="small"
-        type="number"
-        value={capacity}
-        onChange={(e) => setCapacity(e.target.value)}
-      />
+          <Typography>User Name *</Typography>
+          <TextField
+            size="small"
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+          />
 
-      <Typography>Date *</Typography>
-      <TextField
-        type="date"
-        size="small"
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
-      />
+          <Typography color="error">
+            {bookingCount}/3 bookings
+          </Typography>
 
-      <Typography>Start Time *</Typography>
-      <TextField
-        type="time"
-        size="small"
-        value={startTime}
-        onChange={(e) => setStartTime(e.target.value)}
-      />
+          <Typography>Room *</Typography>
+          <Select
+            size="small"
+            value={roomName}
+            onChange={(e) => setRoomName(e.target.value)}
+          >
+            {rooms.map((r: any) => (
+              <MenuItem key={r.id} value={r.name}>
+                {r.name}
+              </MenuItem>
+            ))}
+          </Select>
 
-      <Typography>End Time *</Typography>
-      <TextField
-        type="time"
-        size="small"
-        value={endTime}
-        onChange={(e) => setEndTime(e.target.value)}
-      />
+          <Typography>Capacity *</Typography>
+          <TextField
+            size="small"
+            type="number"
+            value={capacity}
+            onChange={(e) => setCapacity(e.target.value)}
+          />
 
-      <Typography>Reason *</Typography>
-      <Select
-        size="small"
-        value={reason}
-        onChange={(e) => setReason(e.target.value)}
-      >
-        <MenuItem value="">Select Reason</MenuItem>
-        <MenuItem value="Meeting">Meeting</MenuItem>
-        <MenuItem value="Interview">Interview</MenuItem>
-        <MenuItem value="Training">Training</MenuItem>
-        <MenuItem value="Presentation">Presentation</MenuItem>
-        <MenuItem value="Workshop">Workshop</MenuItem>
-        <MenuItem value="Other">Other</MenuItem>
-      </Select>
+          <Typography>Date *</Typography>
+          <TextField
+            type="date"
+            size="small"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
 
-      <Box display="flex" gap={1}>
-        <Button
-          variant="contained"
-          size="small"
-          sx={{ flex: 1 }}
-          onClick={handleSubmit}
-        >
+          <Typography>Start Time *</Typography>
+          <TextField
+            type="time"
+            size="small"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+          />
+
+          <Typography>End Time *</Typography>
+          <TextField
+            type="time"
+            size="small"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+          />
+
+          <Typography>Reason *</Typography>
+          <Select
+            size="small"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          >
+            <MenuItem value="">Select Reason</MenuItem>
+            <MenuItem value="Meeting">Meeting</MenuItem>
+            <MenuItem value="Interview">Interview</MenuItem>
+            <MenuItem value="Training">Training</MenuItem>
+            <MenuItem value="Presentation">Presentation</MenuItem>
+            <MenuItem value="Workshop">Workshop</MenuItem>
+            <MenuItem value="Other">Other</MenuItem>
+          </Select>
+
+        </Box>
+
+      </DialogContent>
+
+      <DialogActions>
+
+        <Button onClick={handleSubmit} variant="contained">
           Book
         </Button>
 
-        <Button
-          variant="outlined"
-          size="small"
-          sx={{ flex: 1 }}
-          onClick={resetForm}
-        >
-          Reset
+        <Button onClick={onClose} variant="outlined">
+          Close
         </Button>
-      </Box>
 
-    </Box>
+      </DialogActions>
+
+    </Dialog>
   );
 }

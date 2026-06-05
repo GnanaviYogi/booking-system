@@ -12,10 +12,9 @@ import {
 import { useState, useEffect } from "react";
 import {
   useGetRoomsQuery,
-  useCreateBookingMutation,
-  useUpdateBookingMutation,
+  useUpdateBookingMutation, // ✅ ONLY update
 } from "@/services/api";
-import { useSnackbar } from "notistack"; // ✅ ADDED
+import { useSnackbar } from "notistack";
 
 export default function BookingModal({
   open,
@@ -24,10 +23,9 @@ export default function BookingModal({
 }: any) {
 
   const { data: rooms = [] } = useGetRoomsQuery(undefined);
-  const [createBooking] = useCreateBookingMutation();
-  const [updateBooking] = useUpdateBookingMutation();
+  const [updateBooking] = useUpdateBookingMutation(); // ✅ only update
 
-  const { enqueueSnackbar } = useSnackbar(); // ✅ ADDED
+  const { enqueueSnackbar } = useSnackbar();
 
   const [userName, setUserName] = useState("");
   const [date, setDate] = useState("");
@@ -68,7 +66,6 @@ export default function BookingModal({
       !capacity ||
       !reason
     ) {
-      // ✅ ✅ ✅ FIX: replaced alert
       enqueueSnackbar("Please fill all fields", { variant: "error" });
       return;
     }
@@ -86,19 +83,12 @@ export default function BookingModal({
           reason,
         }).unwrap();
       } else {
-        await createBooking({
-          user_name: userName,
-          room_name: roomName,
-          required_capacity: Number(capacity),
-          date,
-          start_time: `${startTime}:00`,
-          end_time: `${endTime}:00`,
-          reason,
-        }).unwrap();
+        // ✅ Safety (no create here anymore)
+        enqueueSnackbar("Invalid edit operation", { variant: "error" });
+        return;
       }
 
-      // ✅ OPTIONAL SUCCESS MESSAGE (clean UX)
-      enqueueSnackbar("✅ Booking saved successfully", {
+      enqueueSnackbar("✅ Booking updated successfully", {
         variant: "success",
         autoHideDuration: 3000,
       });
@@ -110,7 +100,6 @@ export default function BookingModal({
 
       let message = "Booking failed";
 
-      // ✅ ✅ ✅ FIX: handle FastAPI error properly
       if (error?.data?.detail) {
         if (typeof error.data.detail === "string") {
           message = error.data.detail;
@@ -127,7 +116,7 @@ export default function BookingModal({
         }
       }
 
-      enqueueSnackbar(message, { variant: "error" }); // ✅ FIX
+      enqueueSnackbar(message, { variant: "error" });
     }
   };
 
@@ -135,7 +124,7 @@ export default function BookingModal({
     <Dialog open={open} onClose={onClose} fullWidth>
 
       <DialogTitle>
-        {selected?.id ? "Edit Booking" : "Book Room"}
+        Edit Booking
       </DialogTitle>
 
       <DialogContent>
