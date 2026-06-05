@@ -12,6 +12,7 @@ class Booking(Base):
     user_name = Column(String, nullable=False)  # ✅ FIXED
 
     room_id = Column(Integer, ForeignKey("rooms.id"))
+    required_capacity = Column(Integer)
 
     date = Column(Date, nullable=False)
     start_time = Column(Time)

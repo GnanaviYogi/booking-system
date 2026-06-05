@@ -11,18 +11,15 @@ from sqlalchemy.exc import SQLAlchemyError
 # ============================
 def create_booking_service(db: Session, data):
 
-    # ✅ Check room exists
     room = db.query(Room).filter(Room.name.ilike(data.room_name.strip())).first()
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
 
-    # ✅ Get user using name
     user = db.query(User).filter(User.name.ilike(data.user_name.strip())).first()
-
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # ✅ ✅ ✅ LIMIT CHECK (MAX 3 BOOKINGS PER DAY)
+    # ✅ LIMIT CHECK
     existing_count = (
         db.query(Booking)
         .filter(Booking.user_id == user.id, Booking.date == data.date)
@@ -34,7 +31,7 @@ def create_booking_service(db: Session, data):
             status_code=400, detail="You cannot book more than 3 rooms in a day"
         )
 
-    # ✅ Capacity check
+    # ✅ CAPACITY CHECK
     if room.capacity < data.required_capacity:
         suitable_rooms = (
             db.query(Room).filter(Room.capacity >= data.required_capacity).all()
@@ -52,21 +49,18 @@ def create_booking_service(db: Session, data):
             },
         )
 
-    # ✅ Time validation
-    start_time_obj = data.start_time
-    end_time_obj = data.end_time
-
-    if end_time_obj <= start_time_obj:
+    # ✅ TIME VALIDATION
+    if data.end_time <= data.start_time:
         raise HTTPException(status_code=400, detail="End time must be after start time")
 
-    # ✅ Overlap check
+    # ✅ OVERLAP CHECK
     overlapping = (
         db.query(Booking)
         .filter(
             Booking.room_id == room.id,
             Booking.date == data.date,
-            Booking.start_time < end_time_obj,
-            Booking.end_time > start_time_obj,
+            Booking.start_time < data.end_time,
+            Booking.end_time > data.start_time,
         )
         .first()
     )
@@ -76,14 +70,15 @@ def create_booking_service(db: Session, data):
             status_code=400, detail="Room already booked for this time slot"
         )
 
-    # ✅ Create booking (store BOTH)
+    # ✅ CREATE
     booking = Booking(
         user_id=user.id,
         user_name=user.name,
         room_id=room.id,
+        required_capacity=data.required_capacity,
         date=data.date,
-        start_time=start_time_obj,
-        end_time=end_time_obj,
+        start_time=data.start_time,
+        end_time=data.end_time,
         reason=data.reason,
     )
 
@@ -95,6 +90,7 @@ def create_booking_service(db: Session, data):
         "id": booking.id,
         "user_name": booking.user_name,
         "room_name": room.name,
+        "required_capacity": booking.required_capacity,
         "date": booking.date.strftime("%Y-%m-%d"),
         "start_time": booking.start_time.strftime("%H:%M"),
         "end_time": booking.end_time.strftime("%H:%M"),
@@ -103,30 +99,24 @@ def create_booking_service(db: Session, data):
 
 
 # ============================
-# ✅ GET BOOKINGS (Calendar uses this)
+# ✅ GET BOOKINGS
 # ============================
 def get_bookings_service(db: Session):
-    try:
-        bookings = db.query(Booking).all()
+    bookings = db.query(Booking).all()
 
-        return [
-            {
-                "id": b.id,
-                "user_name": b.user_name,  # ✅ important for UI
-                "room_name": b.room.name if b.room else "Unknown Room",
-                "date": b.date.strftime("%Y-%m-%d") if b.date else None,
-                "start_time": b.start_time.strftime("%H:%M") if b.start_time else None,
-                "end_time": b.end_time.strftime("%H:%M") if b.end_time else None,
-                "reason": b.reason,
-            }
-            for b in bookings
-        ]
-
-    except SQLAlchemyError:
-        raise HTTPException(status_code=500, detail="Database error occurred")
-
-    except Exception:
-        raise HTTPException(status_code=500, detail="Unexpected error occurred")
+    return [
+        {
+            "id": b.id,
+            "user_name": b.user_name,
+            "room_name": b.room.name if b.room else "Unknown Room",
+            "required_capacity": b.required_capacity,
+            "date": b.date.strftime("%Y-%m-%d") if b.date else None,
+            "start_time": b.start_time.strftime("%H:%M") if b.start_time else None,
+            "end_time": b.end_time.strftime("%H:%M") if b.end_time else None,
+            "reason": b.reason,
+        }
+        for b in bookings
+    ]
 
 
 # ============================
@@ -147,7 +137,7 @@ def delete_booking_service(db, booking_id: int):
 
 
 # ============================
-# ✅ UPDATE BOOKING
+# ✅ UPDATE BOOKING (✅ WITH OVERLAP FIX)
 # ============================
 def update_booking_service(db, booking_id: int, data):
 
@@ -156,7 +146,7 @@ def update_booking_service(db, booking_id: int, data):
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
 
-    # ✅ Update user using name
+    # ✅ UPDATE USER
     if data.user_name:
         user = db.query(User).filter(User.name.ilike(data.user_name.strip())).first()
 
@@ -166,7 +156,16 @@ def update_booking_service(db, booking_id: int, data):
         booking.user_id = user.id
         booking.user_name = user.name
 
-    # ✅ Update other fields
+    # ✅ UPDATE ROOM
+    if hasattr(data, "room_name") and data.room_name:
+        room = db.query(Room).filter(Room.name.ilike(data.room_name.strip())).first()
+
+        if not room:
+            raise HTTPException(status_code=404, detail="Room not found")
+
+        booking.room_id = room.id
+
+    # ✅ UPDATE DATE/TIME
     if data.date:
         booking.date = data.date
 
@@ -176,12 +175,43 @@ def update_booking_service(db, booking_id: int, data):
     if hasattr(data, "end_time") and data.end_time:
         booking.end_time = data.end_time
 
+    # ✅ UPDATE REASON
     if data.reason is not None:
         booking.reason = data.reason
 
-    # ✅ Time validation
+    # ✅ UPDATE CAPACITY
+    if hasattr(data, "required_capacity") and data.required_capacity:
+        room = db.query(Room).filter(Room.id == booking.room_id).first()
+
+        if data.required_capacity > room.capacity:
+            raise HTTPException(
+                status_code=400,
+                detail="Selected room does not support required capacity",
+            )
+
+        booking.required_capacity = data.required_capacity
+
+    # ✅ TIME VALIDATION
     if booking.end_time <= booking.start_time:
         raise HTTPException(status_code=400, detail="End time must be after start time")
+
+    # ✅ ✅ ✅ OVERLAP CHECK (NEW FIX)
+    overlapping = (
+        db.query(Booking)
+        .filter(
+            Booking.room_id == booking.room_id,
+            Booking.date == booking.date,
+            Booking.id != booking.id,  # ✅ exclude itself
+            Booking.start_time < booking.end_time,
+            Booking.end_time > booking.start_time,
+        )
+        .first()
+    )
+
+    if overlapping:
+        raise HTTPException(
+            status_code=400, detail="Room already booked for this time slot"
+        )
 
     db.commit()
     db.refresh(booking)
@@ -190,6 +220,7 @@ def update_booking_service(db, booking_id: int, data):
         "id": booking.id,
         "user_name": booking.user_name,
         "room_name": booking.room.name,
+        "required_capacity": booking.required_capacity,
         "date": booking.date.strftime("%Y-%m-%d"),
         "start_time": booking.start_time.strftime("%H:%M"),
         "end_time": booking.end_time.strftime("%H:%M"),
