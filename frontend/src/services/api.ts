@@ -30,22 +30,21 @@ export const api = createApi({
         body: data,
       }),
 
-      // ✅ FIX: force refetch properly
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         await queryFulfilled;
         dispatch(api.util.invalidateTags(["Bookings"]));
       },
     }),
 
-    // ✅ UPDATE BOOKING
+    // ✅ ✅ ✅ UPDATE BOOKING (THIS IS CORRECT)
     updateBooking: builder.mutation({
       query: ({ id, ...data }) => ({
         url: `bookings/${id}/`,
-        method: "PATCH",
+        method: "PATCH",   // ✅ correct for partial update
         body: data,
       }),
 
-      invalidatesTags: ["Bookings"],
+      invalidatesTags: ["Bookings"], // ✅ auto refresh
     }),
 
     // ✅ DELETE BOOKING
@@ -65,6 +64,6 @@ export const {
   useGetBookingsQuery,
   useGetRoomsQuery,
   useCreateBookingMutation,
-  useUpdateBookingMutation,
+  useUpdateBookingMutation,   // ✅ used in BookingForm
   useDeleteBookingMutation,
 } = api;

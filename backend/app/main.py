@@ -40,11 +40,11 @@ def seed_rooms():
     db = SessionLocal()
 
     rooms = [
-        {"name": "meeting room 1", "capacity": 5},
-        {"name": "meeting room 2", "capacity": 10},
-        {"name": "meeting room 3", "capacity": 15},
-        {"name": "meeting room 4", "capacity": 20},
-        {"name": "meeting room 5", "capacity": 25},
+        {"name": "Ganga", "capacity": 5},
+        {"name": "Yamuna", "capacity": 10},
+        {"name": "Kaveri", "capacity": 15},
+        {"name": "Narmada", "capacity": 20},
+        {"name": "Saraswathi", "capacity": 25},
     ]
 
     for r in rooms:

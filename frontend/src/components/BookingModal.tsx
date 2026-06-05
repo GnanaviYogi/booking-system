@@ -10,69 +10,145 @@ import {
   MenuItem,
 } from "@mui/material";
 import { useState, useEffect } from "react";
+import {
+  useGetRoomsQuery,
+  useCreateBookingMutation,
+  useUpdateBookingMutation,
+} from "@/services/api";
+import { useSnackbar } from "notistack"; // ✅ ADDED
 
 export default function BookingModal({
+  open,
+  onClose,
   selected,
-  setSelected,
-  updateBooking,
-  rooms = [],
 }: any) {
 
+  const { data: rooms = [] } = useGetRoomsQuery(undefined);
+  const [createBooking] = useCreateBookingMutation();
+  const [updateBooking] = useUpdateBookingMutation();
+
+  const { enqueueSnackbar } = useSnackbar(); // ✅ ADDED
+
+  const [userName, setUserName] = useState("");
+  const [date, setDate] = useState("");
   const [reason, setReason] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [roomName, setRoomName] = useState("");
+  const [capacity, setCapacity] = useState("");
 
-  // ✅ ✅ Fill data when editing
   useEffect(() => {
     if (selected) {
+      setUserName(selected.user_name || "");
+      setDate(selected.date?.slice(0, 10) || "");
       setReason(selected.reason || "");
-      setStartTime(selected.start_time || "");
-      setEndTime(selected.end_time || "");
+      setStartTime(selected.start_time?.slice(0, 5) || "");
+      setEndTime(selected.end_time?.slice(0, 5) || "");
       setRoomName(selected.room_name || "");
-    }
-  }, [selected]);
-
-  // ✅ ✅ ✅ MAIN FIX → RESET WHEN MODAL CLOSES
-  useEffect(() => {
-    if (!selected) {
+      setCapacity(selected.required_capacity || "");
+    } else {
+      setUserName("");
+      setDate("");
       setReason("");
       setStartTime("");
       setEndTime("");
       setRoomName("");
+      setCapacity("");
     }
-  }, [selected]);
+  }, [selected, open]);
+
+  const handleSave = async () => {
+
+    if (
+      !userName ||
+      !roomName ||
+      !date ||
+      !startTime ||
+      !endTime ||
+      !capacity ||
+      !reason
+    ) {
+      // ✅ ✅ ✅ FIX: replaced alert
+      enqueueSnackbar("Please fill all fields", { variant: "error" });
+      return;
+    }
+
+    try {
+      if (selected?.id) {
+        await updateBooking({
+          id: selected.id,
+          user_name: userName,
+          room_name: roomName,
+          required_capacity: Number(capacity),
+          date,
+          start_time: `${startTime}:00`,
+          end_time: `${endTime}:00`,
+          reason,
+        }).unwrap();
+      } else {
+        await createBooking({
+          user_name: userName,
+          room_name: roomName,
+          required_capacity: Number(capacity),
+          date,
+          start_time: `${startTime}:00`,
+          end_time: `${endTime}:00`,
+          reason,
+        }).unwrap();
+      }
+
+      // ✅ OPTIONAL SUCCESS MESSAGE (clean UX)
+      enqueueSnackbar("✅ Booking saved successfully", {
+        variant: "success",
+        autoHideDuration: 3000,
+      });
+
+      onClose();
+
+    } catch (error: any) {
+      console.log("FULL ERROR:", error);
+
+      let message = "Booking failed";
+
+      // ✅ ✅ ✅ FIX: handle FastAPI error properly
+      if (error?.data?.detail) {
+        if (typeof error.data.detail === "string") {
+          message = error.data.detail;
+        } else if (typeof error.data.detail === "object") {
+          message = error.data.detail.message || message;
+
+          if (error.data.detail.suggested_rooms) {
+            const rooms = error.data.detail.suggested_rooms
+              .map((r: any) => r.room_name)
+              .join(", ");
+
+            message += ` | Try: ${rooms}`;
+          }
+        }
+      }
+
+      enqueueSnackbar(message, { variant: "error" }); // ✅ FIX
+    }
+  };
 
   return (
-    <Dialog
-      open={!!selected}
-      onClose={() => setSelected(null)}
-      fullWidth
-      PaperProps={{
-        sx: {
-          mt: "-80px",
-          borderRadius: 3,
-        },
-      }}
-    >
+    <Dialog open={open} onClose={onClose} fullWidth>
 
-      <DialogTitle sx={{ fontSize: 16 }}>
-        Booking Details
+      <DialogTitle>
+        {selected?.id ? "Edit Booking" : "Book Room"}
       </DialogTitle>
 
       <DialogContent>
 
-        <Typography fontSize={13}>
-          <b>User:</b> {selected?.user_name}
-        </Typography>
+        <Typography>User</Typography>
+        <TextField
+          fullWidth
+          size="small"
+          value={userName}
+          onChange={(e) => setUserName(e.target.value)}
+        />
 
-        <Typography fontSize={13}>
-          <b>Date:</b> {selected?.date}
-        </Typography>
-
-        <Typography mt={1} fontSize={13}>
-          <b>Room:</b>
-        </Typography>
+        <Typography mt={1}>Room</Typography>
         <Select
           fullWidth
           size="small"
@@ -86,61 +162,70 @@ export default function BookingModal({
           ))}
         </Select>
 
-        <Typography mt={1} fontSize={13}>
-          <b>Start Time:</b>
-        </Typography>
+        <Typography mt={1}>Capacity</Typography>
+        <TextField
+          fullWidth
+          size="small"
+          type="number"
+          value={capacity}
+          onChange={(e) => setCapacity(e.target.value)}
+        />
+
+        <Typography mt={1}>Date</Typography>
+        <TextField
+          type="date"
+          fullWidth
+          size="small"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+        />
+
+        <Typography mt={1}>Start Time</Typography>
         <TextField
           type="time"
-          size="small"
           fullWidth
+          size="small"
           value={startTime}
           onChange={(e) => setStartTime(e.target.value)}
         />
 
-        <Typography mt={1} fontSize={13}>
-          <b>End Time:</b>
-        </Typography>
+        <Typography mt={1}>End Time</Typography>
         <TextField
           type="time"
-          size="small"
           fullWidth
+          size="small"
           value={endTime}
           onChange={(e) => setEndTime(e.target.value)}
         />
 
-        <Typography mt={1} fontSize={13}>
-          <b>Reason:</b>
-        </Typography>
-        <TextField
-          size="small"
+        <Typography mt={1}>Reason</Typography>
+        <Select
           fullWidth
+          size="small"
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-        />
+        >
+          <MenuItem value="">Select Reason</MenuItem>
+          <MenuItem value="Meeting">Meeting</MenuItem>
+          <MenuItem value="Interview">Interview</MenuItem>
+          <MenuItem value="Training">Training</MenuItem>
+          <MenuItem value="Presentation">Presentation</MenuItem>
+          <MenuItem value="Workshop">Workshop</MenuItem>
+          <MenuItem value="Other">Other</MenuItem>
+        </Select>
 
       </DialogContent>
 
       <DialogActions>
-        <Button
-          size="small"
-          onClick={async () => {
-            await updateBooking({
-              id: selected.id,
-              reason,
-              start_time: startTime,
-              end_time: endTime,
-              room_name: roomName,
-            });
 
-            setSelected(null);   // ✅ closes + resets
-          }}
-        >
+        <Button onClick={handleSave}>
           Save
         </Button>
 
-        <Button size="small" onClick={() => setSelected(null)}>
+        <Button onClick={onClose}>
           Close
         </Button>
+
       </DialogActions>
 
     </Dialog>

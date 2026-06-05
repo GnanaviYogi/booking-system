@@ -55,21 +55,7 @@ export default function Home() {
         <div style={{ width: "15%", paddingRight: "10px" }}>
           <RoomList />
 
-          <button
-            onClick={() => setShowForm(true)}
-            style={{
-              marginTop: "10px",
-              padding: "8px",
-              background: "#1976d2",
-              color: "white",
-              border: "none",
-              borderRadius: "8px",
-              fontWeight: "bold",
-              cursor: "pointer",
-            }}
-          >
-            + Book Room
-          </button>
+        
         </div>
 
         {/* RIGHT */}

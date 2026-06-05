@@ -16,7 +16,7 @@ import {
 } from "@/services/api";
 import { useSnackbar } from "notistack";
 
-export default function BookingForm({ open, selected }: any) {
+export default function BookingForm({ open, selected, onClose }: any) {
 
   const { data: rooms = [] } = useGetRoomsQuery(undefined);
   const { data: bookings = [] } = useGetBookingsQuery(undefined);
@@ -36,9 +36,9 @@ export default function BookingForm({ open, selected }: any) {
   useEffect(() => {
     if (selected?.prefill) {
       setRoomName(selected.room_name);
-      setDate(selected.date);
-      setStartTime(selected.start_time);
-      setEndTime(selected.end_time);
+      setDate(selected.date?.split("T")[0] || "");
+      setStartTime(selected.start_time?.slice(0, 5) || "");
+      setEndTime(selected.end_time?.slice(0, 5) || "");
     }
   }, [selected]);
 
@@ -68,38 +68,86 @@ export default function BookingForm({ open, selected }: any) {
 
   const bookingCount = getBookingCount();
 
-  // ✅ SUBMIT (✅ ONLY user_name is sent)
+  // ✅ ✅ ✅ FINAL HANDLE SUBMIT
   const handleSubmit = async () => {
+
+    // ✅ REQUIRED FIELDS
+    if (!userName || !roomName || !capacity || !date || !startTime || !endTime || !reason) {
+      enqueueSnackbar("Please fill all fields", { variant: "error" });
+      return;
+    }
+
+    // ✅ DAILY LIMIT
     if (bookingCount >= 3) {
-      enqueueSnackbar("❌ Max 3 bookings per day", {
-        variant: "error",
-      });
+      enqueueSnackbar("Max 3 bookings per day", { variant: "error" });
+      return;
+    }
+
+    // ✅ FRONTEND CAPACITY VALIDATION
+    const selectedRoom = rooms.find((r: any) => r.name === roomName);
+
+    if (!selectedRoom) {
+      enqueueSnackbar("Please select a valid room", { variant: "error" });
+      return;
+    }
+
+    const enteredCapacity = Number(capacity);
+    const roomCapacity = Number(selectedRoom.capacity);
+
+    if (enteredCapacity > roomCapacity) {
+      enqueueSnackbar(
+        `❌ ${roomName} supports only ${roomCapacity} people`,
+        { variant: "error" }
+      );
       return;
     }
 
     try {
       await createBooking({
-        user_name: userName,   // ✅ CORRECT (no user_id)
-
+        user_name: userName,
         room_name: roomName,
-        required_capacity: Number(capacity),
-        date,
+        required_capacity: enteredCapacity,
+        date: date.split("T")[0],
         start_time: `${startTime}:00`,
         end_time: `${endTime}:00`,
         reason,
       }).unwrap();
 
-      enqueueSnackbar("✅ Booking Successful", {
+      // ✅ SUCCESS MESSAGE
+      enqueueSnackbar("✅ Room booked successfully", {
         variant: "success",
+        autoHideDuration: 3000,
       });
 
-      resetForm();
+      onClose();
 
     } catch (err: any) {
-      const message =
-        err?.data?.detail?.message ||
-        err?.data?.detail ||
-        "Booking Failed ❌";
+      console.log("FULL ERROR:", err);
+
+      let message = "Booking Failed";
+
+      // ✅ ✅ ✅ HANDLE FASTAPI ERROR STRUCTURE
+      if (err?.data?.detail) {
+
+        // if string
+        if (typeof err.data.detail === "string") {
+          message = err.data.detail;
+        }
+
+        // if object
+        else if (typeof err.data.detail === "object") {
+          message = err.data.detail.message || message;
+
+          // ✅ show suggested rooms if available
+          if (err.data.detail.suggested_rooms) {
+            const suggested = err.data.detail.suggested_rooms
+              .map((r: any) => r.room_name)
+              .join(", ");
+
+            message += ` | Try: ${suggested}`;
+          }
+        }
+      }
 
       enqueueSnackbar(message, { variant: "error" });
     }
@@ -108,25 +156,18 @@ export default function BookingForm({ open, selected }: any) {
   return (
     <Box display="flex" flexDirection="column" gap={0.5}>
 
-      {/* ✅ USER NAME */}
-      <Typography fontSize={12}>
-        User Name <span style={{ color: "red" }}>*</span>
-      </Typography>
+      <Typography>User Name *</Typography>
       <TextField
         size="small"
         value={userName}
         onChange={(e) => setUserName(e.target.value)}
       />
 
-      {/* ✅ BOOKING COUNT */}
-      <Typography fontSize={11} color="error">
-        {bookingCount}/3 bookings for selected date
+      <Typography color="error">
+        {bookingCount}/3 bookings
       </Typography>
 
-      {/* ✅ ROOM */}
-      <Typography fontSize={12}>
-        Room <span style={{ color: "red" }}>*</span>
-      </Typography>
+      <Typography>Room *</Typography>
       <Select
         size="small"
         value={roomName}
@@ -139,10 +180,7 @@ export default function BookingForm({ open, selected }: any) {
         ))}
       </Select>
 
-      {/* ✅ CAPACITY */}
-      <Typography fontSize={12}>
-        Capacity <span style={{ color: "red" }}>*</span>
-      </Typography>
+      <Typography>Capacity *</Typography>
       <TextField
         size="small"
         type="number"
@@ -150,10 +188,7 @@ export default function BookingForm({ open, selected }: any) {
         onChange={(e) => setCapacity(e.target.value)}
       />
 
-      {/* ✅ DATE */}
-      <Typography fontSize={12}>
-        Date <span style={{ color: "red" }}>*</span>
-      </Typography>
+      <Typography>Date *</Typography>
       <TextField
         type="date"
         size="small"
@@ -161,10 +196,7 @@ export default function BookingForm({ open, selected }: any) {
         onChange={(e) => setDate(e.target.value)}
       />
 
-      {/* ✅ START TIME */}
-      <Typography fontSize={12}>
-        Start Time <span style={{ color: "red" }}>*</span>
-      </Typography>
+      <Typography>Start Time *</Typography>
       <TextField
         type="time"
         size="small"
@@ -172,10 +204,7 @@ export default function BookingForm({ open, selected }: any) {
         onChange={(e) => setStartTime(e.target.value)}
       />
 
-      {/* ✅ END TIME */}
-      <Typography fontSize={12}>
-        End Time <span style={{ color: "red" }}>*</span>
-      </Typography>
+      <Typography>End Time *</Typography>
       <TextField
         type="time"
         size="small"
@@ -183,23 +212,22 @@ export default function BookingForm({ open, selected }: any) {
         onChange={(e) => setEndTime(e.target.value)}
       />
 
-      {/* ✅ REASON */}
-      <Typography fontSize={12}>
-        Reason <span style={{ color: "red" }}>*</span>
-      </Typography>
+      <Typography>Reason *</Typography>
       <Select
         size="small"
         value={reason}
         onChange={(e) => setReason(e.target.value)}
       >
+        <MenuItem value="">Select Reason</MenuItem>
         <MenuItem value="Meeting">Meeting</MenuItem>
         <MenuItem value="Interview">Interview</MenuItem>
         <MenuItem value="Training">Training</MenuItem>
+        <MenuItem value="Presentation">Presentation</MenuItem>
+        <MenuItem value="Workshop">Workshop</MenuItem>
         <MenuItem value="Other">Other</MenuItem>
       </Select>
 
-      {/* ✅ BUTTONS */}
-      <Box display="flex" gap={1} mt={1}>
+      <Box display="flex" gap={1}>
         <Button
           variant="contained"
           size="small"
