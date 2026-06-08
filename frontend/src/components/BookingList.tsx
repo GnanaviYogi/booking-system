@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import {
   useGetBookingsQuery,
   useGetRoomsQuery,
@@ -8,12 +8,12 @@ import {
   useUpdateBookingMutation,
 } from "@/services/api";
 
-import { Box, Paper, Typography, Button } from "@mui/material";
+import { Box, Paper, Typography, Button, TextField } from "@mui/material";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 
 import ScheduleGrid from "./ScheduleGrid";
 import BookingModal from "./BookingModal";
-import BookingForm from "./BookingForm"; // ✅ ADD THIS
+import BookingForm from "./BookingForm";
 
 export default function BookingList() {
 
@@ -26,10 +26,8 @@ export default function BookingList() {
   const [selected, setSelected] = useState<any>(null);
   const [date, setDate] = useState<Date>(new Date());
 
-  const [showModal, setShowModal] = useState(false);   // ✅ EDIT
-  const [showCreateForm, setShowCreateForm] = useState(false); // ✅ CREATE
-
-  const dateRef = useRef<HTMLInputElement>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   const times = Array.from({ length: 10 }, (_, i) => i + 8);
 
@@ -51,10 +49,10 @@ export default function BookingList() {
   return (
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
 
-      {/* HEADER */}
+      {/* ✅ HEADER */}
       <Paper
         sx={{
-          p: 1,
+          p: 1.5,
           mb: 1,
           borderRadius: 3,
           display: "flex",
@@ -64,37 +62,78 @@ export default function BookingList() {
           color: "white",
         }}
       >
-        <Button onClick={() => shiftDate(-1)}>⬅ Prev</Button>
 
-        <Box display="flex" alignItems="center" gap={1}>
+        {/* ✅ LEFT BUTTON */}
+        <Button
+          variant="outlined"
+          sx={{
+            color: "white",
+            borderColor: "white",
+            "&:hover": { borderColor: "#ccc" },
+            textTransform: "none",
+          }}
+          onClick={() => shiftDate(-1)}
+        >
+          ⬅ Prev
+        </Button>
+
+        {/* ✅ CENTER DATE + PICKER */}
+        <Box display="flex" alignItems="center" gap={2}>
+
           <Typography fontWeight="bold">
             {date.toDateString()}
           </Typography>
 
-          <CalendarMonthIcon
-            sx={{ cursor: "pointer" }}
-            onClick={() => dateRef.current?.showPicker()}
-          />
-
-          <input
+          {/* ✅ FIXED DATE PICKER */}
+          <TextField
             type="date"
-            ref={dateRef}
-            style={{ display: "none" }}
+            size="small"
+            value={currentDateStr}
             onChange={(e) => {
               if (e.target.value) {
                 setDate(new Date(e.target.value));
               }
             }}
+            sx={{
+              background: "white",
+              borderRadius: 1,
+              minWidth: 140,
+            }}
           />
+
+          <CalendarMonthIcon />
         </Box>
 
+        {/* ✅ RIGHT BUTTONS */}
         <Box display="flex" gap={1}>
-          <Button onClick={() => setDate(new Date())}>Today</Button>
-          <Button onClick={() => shiftDate(1)}>Next ➡</Button>
+          <Button
+            variant="outlined"
+            sx={{
+              color: "white",
+              borderColor: "white",
+              textTransform: "none",
+            }}
+            onClick={() => setDate(new Date())}
+          >
+            Today
+          </Button>
+
+          <Button
+            variant="outlined"
+            sx={{
+              color: "white",
+              borderColor: "white",
+              textTransform: "none",
+            }}
+            onClick={() => shiftDate(1)}
+          >
+            Next ➡
+          </Button>
         </Box>
+
       </Paper>
 
-      {/* GRID */}
+      {/* ✅ GRID */}
       <Box sx={{ flex: 1, p: 2, display: "flex", flexDirection: "column" }}>
         <ScheduleGrid
           rooms={rooms}
@@ -102,13 +141,11 @@ export default function BookingList() {
           times={times}
           currentDateStr={currentDateStr}
 
-          // ✅ EDIT FLOW
           onEdit={(booking: any) => {
             setSelected(booking);
             setShowModal(true);
           }}
 
-          // ✅ DELETE
           onDelete={(id: number) => {
             if (confirm("Delete this booking?")) {
               deleteBooking(id);
@@ -117,12 +154,11 @@ export default function BookingList() {
         />
 
         {/* ✅ CREATE BUTTON */}
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2}}>
           <Button
             variant="contained"
-            onClick={() => {
-              setShowCreateForm(true); // ✅ NOW OPENS FORM
-            }}
+            onClick={() => setShowCreateForm(true)}
+            sx={{ textTransform: "none" }}
           >
             + Book Room
           </Button>

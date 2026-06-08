@@ -36,7 +36,7 @@ export default function BookingForm({ open, selected, onClose }: any) {
   const [endTime, setEndTime] = useState("");
   const [reason, setReason] = useState("");
 
-  // ✅ PREFILL (optional reuse)
+
   useEffect(() => {
     if (selected?.prefill) {
       setRoomName(selected.room_name);
@@ -114,7 +114,7 @@ export default function BookingForm({ open, selected, onClose }: any) {
         reason,
       }).unwrap();
 
-      enqueueSnackbar("✅ Room booked successfully", {
+      enqueueSnackbar("Room booked successfully", {
         variant: "success",
         autoHideDuration: 3000,
       });
@@ -147,102 +147,116 @@ export default function BookingForm({ open, selected, onClose }: any) {
     }
   };
 
-  return (
-    <Dialog open={open} onClose={onClose} fullWidth>
+ return (
+  <Dialog
+    open={open}
+    onClose={onClose}
+    fullWidth
+    transitionDuration={{ appear: 0, enter: 0, exit: 0 }} 
+  >
 
-      <DialogTitle>Book Room</DialogTitle>
+    <DialogTitle sx={{ fontSize: "16px", pb: 1 }}>
+      Book Room
+    </DialogTitle>
 
-      <DialogContent>
+    <DialogContent sx={{ pt: 1, pb: 1 }}>
 
-        <Box display="flex" flexDirection="column" gap={1} mt={1}>
+      <Box display="flex" flexDirection="column" gap={0.7} mt={1}>
 
-          <Typography>User Name *</Typography>
-          <TextField
-            size="small"
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
-          />
+        <Typography sx={{ fontSize: "13px" }}>User Name *</Typography>
+        <TextField
+          size="small"
+          value={userName}
+          onChange={(e) => setUserName(e.target.value)}
+        />
 
-          <Typography color="error">
-            {bookingCount}/3 bookings
-          </Typography>
+        <Typography color="error" sx={{ fontSize: "12px" }}>
+          {bookingCount}/3 bookings
+        </Typography>
 
-          <Typography>Room *</Typography>
-          <Select
-            size="small"
-            value={roomName}
-            onChange={(e) => setRoomName(e.target.value)}
-          >
-            {rooms.map((r: any) => (
-              <MenuItem key={r.id} value={r.name}>
-                {r.name}
-              </MenuItem>
-            ))}
-          </Select>
+        <Typography sx={{ fontSize: "13px" }}>Room *</Typography>
+        <Select
+          size="small"
+          value={roomName}
+          onChange={(e) => setRoomName(e.target.value)}
+        >
+          {rooms.map((r: any) => (
+            <MenuItem key={r.id} value={r.name}>
+              {r.name}
+            </MenuItem>
+          ))}
+        </Select>
 
-          <Typography>Capacity *</Typography>
-          <TextField
-            size="small"
-            type="number"
-            value={capacity}
-            onChange={(e) => setCapacity(e.target.value)}
-          />
+        <Typography sx={{ fontSize: "13px" }}>Capacity *</Typography>
+        <TextField
+          size="small"
+          type="number"
+          value={capacity}
+          onChange={(e) => setCapacity(e.target.value)}
+        />
 
-          <Typography>Date *</Typography>
-          <TextField
-            type="date"
-            size="small"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
+        <Typography sx={{ fontSize: "13px" }}>Date *</Typography>
+        <TextField
+          type="date"
+          size="small"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+        />
 
-          <Typography>Start Time *</Typography>
-          <TextField
-            type="time"
-            size="small"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-          />
+        <Typography sx={{ fontSize: "13px" }}>Start Time *</Typography>
+        <TextField
+          type="time"
+          size="small"
+          value={startTime}
+          onChange={(e) => setStartTime(e.target.value)}
+        />
 
-          <Typography>End Time *</Typography>
-          <TextField
-            type="time"
-            size="small"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-          />
+        <Typography sx={{ fontSize: "13px" }}>End Time *</Typography>
+        <TextField
+          type="time"
+          size="small"
+          value={endTime}
+          onChange={(e) => setEndTime(e.target.value)}
+        />
 
-          <Typography>Reason *</Typography>
-          <Select
-            size="small"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-          >
-            <MenuItem value="">Select Reason</MenuItem>
-            <MenuItem value="Meeting">Meeting</MenuItem>
-            <MenuItem value="Interview">Interview</MenuItem>
-            <MenuItem value="Training">Training</MenuItem>
-            <MenuItem value="Presentation">Presentation</MenuItem>
-            <MenuItem value="Workshop">Workshop</MenuItem>
-            <MenuItem value="Other">Other</MenuItem>
-          </Select>
+        <Typography sx={{ fontSize: "13px" }}>Reason *</Typography>
+        <Select
+          size="small"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+        >
+          <MenuItem value="">Select Reason</MenuItem>
+          <MenuItem value="Meeting">Meeting</MenuItem>
+          <MenuItem value="Interview">Interview</MenuItem>
+          <MenuItem value="Training">Training</MenuItem>
+          <MenuItem value="Presentation">Presentation</MenuItem>
+          <MenuItem value="Workshop">Workshop</MenuItem>
+          <MenuItem value="Other">Other</MenuItem>
+        </Select>
 
-        </Box>
+      </Box>
 
-      </DialogContent>
+    </DialogContent>
 
-      <DialogActions>
+    <DialogActions sx={{ p: 1 }}>
 
-        <Button onClick={handleSubmit} variant="contained">
-          Book
-        </Button>
+      <Button
+        onClick={handleSubmit}
+        variant="contained"
+        size="small"
+      >
+        Book
+      </Button>
 
-        <Button onClick={onClose} variant="outlined">
-          Close
-        </Button>
+      <Button
+        onClick={onClose}
+        variant="outlined"
+        size="small"
+      >
+        Close
+      </Button>
 
-      </DialogActions>
+    </DialogActions>
 
-    </Dialog>
-  );
-}
+  </Dialog>
+  );}

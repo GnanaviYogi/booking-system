@@ -101,16 +101,11 @@ export default function ScheduleGrid({
                 return slotBookings.map((booking: any) => {
 
                   const startHour = Math.floor(
-                    toMinutes(booking.start_time) / 60
-                  );
+  toMinutes(booking.start_time) / 60
+);
 
-                  if (h !== startHour) return null;
-
-                  const endHour = Math.ceil(
-                    toMinutes(booking.end_time) / 60
-                  );
-
-                  const span = endHour - startHour;
+// ✅ force single block rendering
+const span = 1;
 
                   return (
                     <Paper
@@ -187,6 +182,7 @@ export default function ScheduleGrid({
                   variant="contained"
                   size="small"
                   fullWidth
+                  sx={{ textTransform: "none" }}
                   onClick={() => {
                     onEdit && onEdit(selectedBooking);
                     setOpen(false);
@@ -200,6 +196,7 @@ export default function ScheduleGrid({
                   color="error"
                   size="small"
                   fullWidth
+                  sx={{ textTransform: "none" }}
                   onClick={() => {
                     if (confirm("Delete this booking?")) {
                       onDelete && onDelete(selectedBooking.id);
