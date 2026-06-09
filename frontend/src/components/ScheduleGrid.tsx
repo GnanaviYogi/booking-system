@@ -62,9 +62,9 @@ export default function ScheduleGrid({
         {rooms.map((room: any) => {
 
           const roomBookings = bookings.filter((b: any) =>
-            b.room_name === room.name &&
-            b.date?.slice(0, 10) === currentDateStr
-          );
+  b.room_name === room.name &&
+  (!currentDateStr || b.date?.slice(0, 10) === currentDateStr)
+);
 
           return (
             <Box

@@ -12,7 +12,7 @@ import {
 import { useState, useEffect } from "react";
 import {
   useGetRoomsQuery,
-  useUpdateBookingMutation, // ✅ ONLY update
+  useUpdateBookingMutation, 
 } from "@/services/api";
 import { useSnackbar } from "notistack";
 
@@ -23,7 +23,7 @@ export default function BookingModal({
 }: any) {
 
   const { data: rooms = [] } = useGetRoomsQuery(undefined);
-  const [updateBooking] = useUpdateBookingMutation(); // ✅ only update
+  const [updateBooking] = useUpdateBookingMutation(); 
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -83,12 +83,11 @@ export default function BookingModal({
           reason,
         }).unwrap();
       } else {
-        // ✅ Safety (no create here anymore)
         enqueueSnackbar("Invalid edit operation", { variant: "error" });
         return;
       }
 
-      enqueueSnackbar("✅ Booking updated successfully", {
+      enqueueSnackbar(" Booking updated successfully", {
         variant: "success",
         autoHideDuration: 3000,
       });

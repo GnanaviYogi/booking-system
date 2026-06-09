@@ -35,9 +35,21 @@ def create_booking(data: BookingCreate, db: Session = Depends(get_db)):
 # ✅ GET BOOKINGS
 # ============================
 @router.get("/", response_model=list[BookingResponse])
-def get_bookings(db: Session = Depends(get_db)):
+def get_bookings(
+    user_name: str = None,
+    room_name: str = None,
+    date: str = None,
+    reason: str = None,
+    db: Session = Depends(get_db),
+):
     try:
-        return get_bookings_service(db)
+        return get_bookings_service(
+            db,
+            user_name=user_name,
+            room_name=room_name,
+            date=date,
+            reason=reason,
+        )
 
     except HTTPException as e:
         raise e

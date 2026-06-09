@@ -13,10 +13,12 @@ export const api = createApi({
 
     // ✅ GET BOOKINGS
     getBookings: builder.query({
-      query: () => "bookings/",
-      providesTags: ["Bookings"],
-    }),
-
+  query: (params) => ({
+    url: "bookings/",
+    params: params, // ✅ THIS IS THE KEY FIX
+  }),
+  providesTags: ["Bookings"],
+}),
     // ✅ GET ROOMS
     getRooms: builder.query({
       query: () => "rooms/",
