@@ -13,6 +13,16 @@ export default function ScheduleGrid({
   const [open, setOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
 
+  
+  const reasonColors: any = {
+    Meeting: "#BBDEFB",       
+    Interview: "#D1C4E9",     
+    Training: "#F8BBD0",      
+    Presentation: "#FFF9C4",  
+    Workshop: "#EF9A9A",      
+    Other: "#CFD8DC",         
+  };
+
   const toMinutes = (t?: string) => {
     if (!t) return 0;
     const [h, m] = t.split(":").map(Number);
@@ -34,8 +44,7 @@ export default function ScheduleGrid({
   };
 
   const formatRoomName = (name: string) =>
-    name
-      .split(" ")
+    name.split(" ")
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(" ");
 
@@ -46,7 +55,7 @@ export default function ScheduleGrid({
 
   return (
     <>
-      <Paper sx={{ p: 2 }}>
+      <Paper sx={{ p: 2, height: "100%", display: "flex", flexDirection: "column" }}>
 
         {/* HEADER */}
         <Box display="grid" gridTemplateColumns={`120px repeat(${times.length},1fr)`}>
@@ -58,94 +67,104 @@ export default function ScheduleGrid({
           ))}
         </Box>
 
-        {/* ROOMS */}
-        {rooms.map((room: any) => {
+        {/* BODY */}
+        <Box sx={{ flex: 1, overflowY: "auto" }}>
 
-          const roomBookings = bookings.filter((b: any) =>
-  b.room_name === room.name &&
-  (!currentDateStr || b.date?.slice(0, 10) === currentDateStr)
-);
+          {rooms.map((room: any) => {
 
-          return (
-            <Box
-              key={room.id}
-              display="grid"
-              gridTemplateColumns={`120px repeat(${times.length},1fr)`}
-              mt={1}
-            >
+            const roomBookings = bookings.filter((b: any) =>
+              b.room_name === room.name &&
+              (!currentDateStr || b.date?.slice(0, 10) === currentDateStr)
+            );
 
-              <Typography fontSize={13}>
-                {formatRoomName(room.name)}
-              </Typography>
+            return (
+              <Box
+                key={room.id}
+                display="grid"
+                gridTemplateColumns={`120px repeat(${times.length},1fr)`}
+                mt={1}
+              >
 
-              {times.map((h: number, i: number) => {
+                <Typography fontSize={13}>
+                  {formatRoomName(room.name)}
+                </Typography>
 
-                // ✅ ✅ ✅ FIX: Get ALL bookings for this slot
-                const slotBookings = roomBookings.filter((b: any) => {
-                  const start = toMinutes(b.start_time);
-                  const end = toMinutes(b.end_time);
-                  const slotStart = h * 60;
-                  const slotEnd = (h + 1) * 60;
-                  return start < slotEnd && end > slotStart;
-                });
+                {times.map((h: number, i: number) => {
 
-                if (!slotBookings.length) {
-                  return (
-                    <Paper
-                      key={i}
-                      sx={{ height: 60, background: "#f5f7fa", m: "2px" }}
-                    />
-                  );
-                }
+                  const slotBookings = roomBookings.filter((b: any) => {
+                    const startHour = Math.floor(toMinutes(b.start_time) / 60);
+                    return startHour === h;
+                  });
 
-                return slotBookings.map((booking: any) => {
+                  if (!slotBookings.length) {
+                    return (
+                      <Paper
+                        key={i}
+                        sx={{
+                          height: 60,
+                          background: "#f5f7fa",
+                          m: "4px",
+                          borderRadius: 2,
+                        }}
+                      />
+                    );
+                  }
 
-                  const startHour = Math.floor(
-  toMinutes(booking.start_time) / 60
-);
+                  return slotBookings.map((booking: any) => {
 
-// ✅ force single block rendering
-const span = 1;
+                    const duration =
+                      (toMinutes(booking.end_time) - toMinutes(booking.start_time)) / 60;
+                    const span = Math.max(1, duration);
 
-                  return (
-                    <Paper
-                      key={booking.id} // ✅ FIX: real unique key
-                      onClick={() => handleBookingClick(booking)}
-                      sx={{
-                        gridColumn: `${i + 2} / span ${span}`,
-                        height: 60,
-                        background: "#1976d2",
-                        color: "white",
-                        cursor: "pointer",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        borderRadius: 2,
-                        m: "2px",
+                    return (
+                      <Paper
+                        key={booking.id}
+                        onClick={() => handleBookingClick(booking)}
+                        sx={{
+                          gridColumn: `${i + 2} / span ${span}`,
+                          height: 60,
 
-                        width: "calc(200% + 4px)",
-                        marginRight: "-100%",
-                        zIndex: 1,
+                          background: reasonColors[booking.reason] || "#E0E0E0",
+                          color: "#1A1A1A",
 
-                        "&:hover": { background: "#1565c0" },
-                      }}
-                    >
-                      <Typography fontSize={11} fontWeight="bold">
-                        {booking.reason}
-                      </Typography>
+                          cursor: "pointer",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
 
-                      <Typography fontSize={10}>
-                        {formatTime12(booking.start_time)} -{" "}
-                        {formatTime12(booking.end_time)}
-                      </Typography>
-                    </Paper>
-                  );
-                });
-              })}
-            </Box>
-          );
-        })}
+                          borderRadius: 2,
+                          m: "6px",
+
+                          boxShadow: "0px 2px 6px rgba(0,0,0,0.12)",
+                          border: "1px solid rgba(0,0,0,0.08)",
+
+                          transition: "all 0.2s ease",
+                          "&:hover": {
+                            transform: "translateY(-2px)",
+                            boxShadow: "0px 4px 10px rgba(0,0,0,0.18)",
+                          },
+                        }}
+                      >
+                        <Typography fontSize={11} fontWeight="600">
+                          {booking.reason}
+                        </Typography>
+
+                        <Typography fontSize={10} sx={{ opacity: 0.75 }}>
+                          {formatTime12(booking.start_time)} -{" "}
+                          {formatTime12(booking.end_time)}
+                        </Typography>
+                      </Paper>
+                    );
+                  });
+                })}
+
+              </Box>
+            );
+          })}
+
+        </Box>
+
       </Paper>
 
       {/* MODAL */}
@@ -182,7 +201,6 @@ const span = 1;
                   variant="contained"
                   size="small"
                   fullWidth
-                  sx={{ textTransform: "none" }}
                   onClick={() => {
                     onEdit && onEdit(selectedBooking);
                     setOpen(false);
@@ -196,7 +214,6 @@ const span = 1;
                   color="error"
                   size="small"
                   fullWidth
-                  sx={{ textTransform: "none" }}
                   onClick={() => {
                     if (confirm("Delete this booking?")) {
                       onDelete && onDelete(selectedBooking.id);

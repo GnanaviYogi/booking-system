@@ -9,7 +9,7 @@ from datetime import time, date as Datetype
 class BookingCreate(BaseModel):
     user_name: str
     room_name: str
-    required_capacity: int  # ✅ REQUIRED
+    required_capacity: int
 
     date: Datetype
 
@@ -26,7 +26,7 @@ class BookingResponse(BaseModel):
     id: int
     user_name: Optional[str] = None
     room_name: Optional[str] = None
-    required_capacity: Optional[int] = None  # ✅ ADDED
+    required_capacity: Optional[int] = None
 
     date: Optional[str] = None
     start_time: Optional[str] = None
@@ -40,8 +40,8 @@ class BookingResponse(BaseModel):
 class BookingUpdate(BaseModel):
     user_name: Optional[str] = None
 
-    room_name: Optional[str] = None  # ✅ ADDED
-    required_capacity: Optional[int] = None  # ✅ ADDED
+    room_name: Optional[str] = None
+    required_capacity: Optional[int] = None
 
     date: Optional[Datetype] = None
     start_time: Optional[time] = None

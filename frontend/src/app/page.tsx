@@ -18,7 +18,7 @@ export default function Home() {
     <div
       style={{
         height: "100vh",
-        overflow: "hidden",
+        overflow: "auto",
         background: "#f1f4f9",
         padding: "20px",
       }}
@@ -59,7 +59,7 @@ export default function Home() {
         </div>
 
         {/* RIGHT */}
-        <div style={{ width: "85%", overflow: "hidden" }}>
+        <div style={{ width: "85%", overflow: "hidden"}}>
           <BookingList />
         </div>
       </div>

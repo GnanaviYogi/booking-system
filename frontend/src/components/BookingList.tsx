@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";   
 import {
   useGetBookingsQuery,
   useGetRoomsQuery,
@@ -23,17 +23,14 @@ export default function BookingList() {
   const [filterDate, setFilterDate] = useState("");
   const [filterReason, setFilterReason] = useState("");
 
-
-  // ✅ ✅ ✅ ADDED (for manual search)
   const [filters, setFilters] = useState({
     user_name: "",
     room_name: "",
     date: "",
+    reason: "",
   });
 
-  // ✅ ✅ ✅ UPDATED (use filters instead of direct states)
   const { data: bookings = [] } = useGetBookingsQuery(filters);
-
   const { data: rooms = [] } = useGetRoomsQuery(undefined);
 
   const [deleteBooking] = useDeleteBookingMutation();
@@ -47,11 +44,10 @@ export default function BookingList() {
 
   const times = Array.from({ length: 10 }, (_, i) => i + 8);
 
-  const getLocalDate = (d: Date) => {
-    return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+  const getLocalDate = (d: Date) =>
+    new Date(d.getTime() - d.getTimezoneOffset() * 60000)
       .toISOString()
       .slice(0, 10);
-  };
 
   const currentDateStr = getLocalDate(date);
 
@@ -61,24 +57,24 @@ export default function BookingList() {
     setDate(newDate);
   };
 
-  // ✅ ✅ ✅ ADDED SEARCH HANDLER
- 
-const handleSearch = (customFilters?: any) => {
-  setFilters(
-    customFilters || {
-      user_name: searchUser,
-      room_name: filterRoom,
-      date: filterDate || "",          
-      reason: filterReason || "",      
+  // ✅ ✅ ✅ NEW: DEBOUNCING LOGIC
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters({
+        user_name: searchUser || "",
+        room_name: filterRoom || "",
+        date: filterDate || "",
+        reason: filterReason || "",
+      });
+    }, 500); // ✅ 500ms delay
 
-    }
-  );
-};
+    return () => clearTimeout(timer);
+  }, [searchUser, filterRoom, filterDate, filterReason]);
 
   return (
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
 
-      {/* ✅ HEADER */}
+      {/* ✅ HEADER (UNCHANGED) */}
       <Paper
         sx={{
           p: 1.5,
@@ -91,15 +87,9 @@ const handleSearch = (customFilters?: any) => {
           color: "white",
         }}
       >
-
         <Button
           variant="outlined"
-          sx={{
-            color: "white",
-            borderColor: "white",
-            "&:hover": { borderColor: "#ccc" },
-            textTransform: "none",
-          }}
+          sx={{ color: "white", borderColor: "white" }}
           onClick={() => shiftDate(-1)}
         >
           ⬅ Prev
@@ -114,16 +104,8 @@ const handleSearch = (customFilters?: any) => {
             type="date"
             size="small"
             value={currentDateStr}
-            onChange={(e) => {
-              if (e.target.value) {
-                setDate(new Date(e.target.value));
-              }
-            }}
-            sx={{
-              background: "white",
-              borderRadius: 1,
-              minWidth: 140,
-            }}
+            onChange={(e) => setDate(new Date(e.target.value))}
+            sx={{ background: "white", borderRadius: 1 }}
           />
 
           <CalendarMonthIcon />
@@ -132,11 +114,7 @@ const handleSearch = (customFilters?: any) => {
         <Box display="flex" gap={1}>
           <Button
             variant="outlined"
-            sx={{
-              color: "white",
-              borderColor: "white",
-              textTransform: "none",
-            }}
+            sx={{ color: "white", borderColor: "white" }}
             onClick={() => setDate(new Date())}
           >
             Today
@@ -144,69 +122,75 @@ const handleSearch = (customFilters?: any) => {
 
           <Button
             variant="outlined"
-            sx={{
-              color: "white",
-              borderColor: "white",
-              textTransform: "none",
-            }}
+            sx={{ color: "white", borderColor: "white" }}
             onClick={() => shiftDate(1)}
           >
             Next ➡
           </Button>
         </Box>
-
       </Paper>
 
-      {/* ✅ GRID */}
-      <Box sx={{ flex: 1, p: 2, display: "flex", flexDirection: "column" }}>
+      {/* ✅ MAIN */}
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0,
+        }}
+      >
 
-        {/* ✅ ✅ ✅ ONLY ADDITION HERE */}
+        {/* ✅ FILTER */}
         <FilterBar
-  searchUser={searchUser}
-  setSearchUser={setSearchUser}
-  filterRoom={filterRoom}
-  setFilterRoom={setFilterRoom}
-  filterDate={filterDate}
-  setFilterDate={setFilterDate}
-  reason={filterReason}           // ✅ ADD
-  setReason={setFilterReason}     // ✅ ADD
-  rooms={rooms}
-  onSearch={handleSearch}
-/>
-        {bookings.length === 0 ? (
-          <Box
-            sx={{
-              flex: 1,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              color: "#777",
-              fontSize: "14px",
-            }}
-          >
-            No bookings found
-          </Box>
-        ) : (
-          <ScheduleGrid
-            rooms={rooms}
-            bookings={bookings}
-            times={times}
-            currentDateStr={currentDateStr}
+          searchUser={searchUser}
+          setSearchUser={setSearchUser}
+          filterRoom={filterRoom}
+          setFilterRoom={setFilterRoom}
+          filterDate={filterDate}
+          setFilterDate={setFilterDate}
+          reason={filterReason}
+          setReason={setFilterReason}
+          rooms={rooms}
+          onSearch={() => {}}   // ✅ disabled manual search
+        />
 
-            onEdit={(booking: any) => {
-              setSelected(booking);
-              setShowModal(true);
-            }}
+        {/* ✅ ONLY calendar scrolls */}
+        <Box sx={{ flex: 1, overflow: "auto", px: 2 }}>
 
-            onDelete={(id: number) => {
-              if (confirm("Delete this booking?")) {
-                deleteBooking(id);
-              }
-            }}
-          />
-        )}
+          {bookings.length === 0 ? (
+            <Box
+              sx={{
+                height: "100%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                color: "#777",
+              }}
+            >
+              No bookings found
+            </Box>
+          ) : (
+            <ScheduleGrid
+              rooms={rooms}
+              bookings={bookings}
+              times={times}
+              currentDateStr={currentDateStr}
+              onEdit={(b: any) => {
+                setSelected(b);
+                setShowModal(true);
+              }}
+              onDelete={(id: number) => {
+                if (confirm("Delete this booking?")) {
+                  deleteBooking(id);
+                }
+              }}
+            />
+          )}
 
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+        </Box>
+
+        {/* ✅ BUTTON (UNCHANGED) */}
+        <Box sx={{ display: "flex", justifyContent: "flex-end", p: 2 }}>
           <Button
             variant="contained"
             onClick={() => setShowCreateForm(true)}
@@ -215,6 +199,7 @@ const handleSearch = (customFilters?: any) => {
             + Book Room
           </Button>
         </Box>
+
       </Box>
 
       {showCreateForm && (
@@ -232,7 +217,6 @@ const handleSearch = (customFilters?: any) => {
         }}
         selected={selected}
       />
-
     </Box>
   );
 }

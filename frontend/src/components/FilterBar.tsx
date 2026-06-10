@@ -1,6 +1,7 @@
 "use client";
 
-import { Box, TextField, Select, MenuItem, Button } from "@mui/material";
+import { Box, TextField, Select, MenuItem, Button, Typography } from "@mui/material";
+import { useState } from "react";
 
 export default function FilterBar({
   searchUser,
@@ -12,39 +13,64 @@ export default function FilterBar({
   reason,
   setReason,
   rooms = [],
-  onSearch, // ✅ needed for search trigger
+  onSearch,
 }: any) {
+
+  // ✅ Validation state
+  const [error, setError] = useState("");
+
+  // ✅ Validate username (only alphabets)
+  const validateAndSearch = () => {
+    const regex = /^[A-Za-z\s]*$/;
+
+    if (searchUser && !regex.test(searchUser)) {
+      setError("User name should contain only alphabets");
+      return;
+    }
+
+    setError(""); 
+    onSearch();   
+  };
+
   return (
-    <Box display="flex" gap={2} mb={2} alignItems="center">
+    <Box display="flex" gap={2} mb={2} alignItems="center" flexWrap="wrap">
 
       {/* ✅ SEARCH USER */}
-      <TextField
-        size="small"
-        label="Search User"
-        value={searchUser}
-        onChange={(e) => setSearchUser(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            onSearch(); // ✅ ENTER triggers search
-          }
-        }}
-      />
+      <Box display="flex" flexDirection="column">
+        <TextField
+          size="small"
+          label="Search User"
+          value={searchUser}
+          onChange={(e) => {
+            setSearchUser(e.target.value);
+            setError(""); // clear error while typing
+          }}
+          error={!!error}
+          helperText={error}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") validateAndSearch();
+          }}
+        />
+      </Box>
 
-      {/* ✅ STEP 1: ADD REASON FILTER */}
-<Select
-  size="small"
-  value={reason}
-  onChange={(e) => setReason(e.target.value)}
-  displayEmpty
->
-  <MenuItem value="">All Reasons</MenuItem>
-  <MenuItem value="Meeting">Meeting</MenuItem>
-  <MenuItem value="Interview">Interview</MenuItem>
-  <MenuItem value="Training">Training</MenuItem>
-  <MenuItem value="Presentation">Presentation</MenuItem>
-  <MenuItem value="Workshop">Workshop</MenuItem>
-  <MenuItem value="Other">Other</MenuItem>
-</Select>
+      {/* ✅ REASON FILTER */}
+      <Select
+        size="small"
+        value={reason}
+        onChange={(e) => setReason(e.target.value)}
+        displayEmpty
+        onKeyDown={(e) => {
+          if (e.key === "Enter") validateAndSearch();
+        }}
+      >
+        <MenuItem value="">All Reasons</MenuItem>
+        <MenuItem value="Meeting">Meeting</MenuItem>
+        <MenuItem value="Interview">Interview</MenuItem>
+        <MenuItem value="Training">Training</MenuItem>
+        <MenuItem value="Presentation">Presentation</MenuItem>
+        <MenuItem value="Workshop">Workshop</MenuItem>
+        <MenuItem value="Other">Other</MenuItem>
+      </Select>
 
       {/* ✅ ROOM FILTER */}
       <Select
@@ -52,11 +78,14 @@ export default function FilterBar({
         value={filterRoom}
         onChange={(e) => setFilterRoom(e.target.value)}
         displayEmpty
+        onKeyDown={(e) => {
+          if (e.key === "Enter") validateAndSearch();
+        }}
       >
         <MenuItem value="">All Rooms</MenuItem>
         {rooms.map((r: any) => (
           <MenuItem key={r.id} value={r.name}>
-            {r.name}
+            {r.name} ({r.capacity} seats)
           </MenuItem>
         ))}
       </Select>
@@ -67,32 +96,34 @@ export default function FilterBar({
         size="small"
         value={filterDate}
         onChange={(e) => setFilterDate(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") validateAndSearch();
+        }}
       />
 
-      {/* ✅ SEARCH BUTTON */}
-  <Button
-  variant="outlined"
-  size="small"
-  sx={{ textTransform: "none" }}
-  onClick={() => {
-    // ✅ Reset ALL fields
-    setSearchUser("");
-    setFilterRoom("");
-    setFilterDate("");
-    setReason("");                 
+     
+      {/* ✅ CLEAR BUTTON */}
+      <Button
+        variant="outlined"
+        size="small"
+        sx={{ textTransform: "none" }}
+        onClick={() => {
+          setSearchUser("");
+          setFilterRoom("");
+          setFilterDate("");
+          setReason("");
+          setError("");
 
-    // ✅ Reset backend filters also
-    onSearch({
-      user_name: "",
-      room_name: "",
-      date: "",
-      reason: "",                 
-    });
-  }}
->
-  Clear
-</Button>
-
+          onSearch({
+            user_name: "",
+            room_name: "",
+            date: "",
+            reason: "",
+          });
+        }}
+      >
+        Clear
+      </Button>
 
     </Box>
   );
