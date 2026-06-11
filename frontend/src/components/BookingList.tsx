@@ -17,8 +17,12 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Chip
 } from "@mui/material";
+
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 import BookingModal from "./BookingModal";
 import FilterBar from "./FilterBar";
@@ -57,11 +61,6 @@ export default function BookingList({ onOpenForm }: any) {
     setDate(newDate);
   };
 
-  useEffect(() => {
-    const timer = setTimeout(() => {}, 500);
-    return () => clearTimeout(timer);
-  }, [searchUser, filterRoom, filterDate, filterReason]);
-
   const formatTime12 = (time: string) => {
     const [h, m] = time.split(":").map(Number);
     const ampm = h >= 12 ? "PM" : "AM";
@@ -80,9 +79,9 @@ export default function BookingList({ onOpenForm }: any) {
   });
 
   return (
-    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+    <Box sx={{ height: "100vh", display: "flex", flexDirection: "column" }}>
 
-      {/* HEADER */}
+      {/* ✅ STICKY HEADER */}
       <Paper
         sx={{
           p: 1.5,
@@ -93,6 +92,11 @@ export default function BookingList({ onOpenForm }: any) {
           alignItems: "center",
           background: "linear-gradient(135deg,#1e3c72,#2a5298)",
           color: "white",
+          flexShrink: 0,
+          position: "sticky",
+          top: 0,
+          zIndex: 10,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.15)"
         }}
       >
         <Button
@@ -118,19 +122,11 @@ export default function BookingList({ onOpenForm }: any) {
         </Box>
 
         <Box display="flex" gap={1}>
-          <Button
-            variant="outlined"
-            sx={{ color: "white", borderColor: "white", textTransform: "none" }}
-            onClick={() => setDate(new Date())}
-          >
+          <Button sx={{ textTransform: "none", color: "white", borderColor: "white" }} variant="outlined" onClick={() => setDate(new Date())}>
             Today
           </Button>
 
-          <Button
-            variant="outlined"
-            sx={{ color: "white", borderColor: "white", textTransform: "none" }}
-            onClick={() => shiftDate(1)}
-          >
+          <Button sx={{ textTransform: "none", color: "white", borderColor: "white" }} variant="outlined" onClick={() => shiftDate(1)}>
             Next
           </Button>
 
@@ -150,20 +146,17 @@ export default function BookingList({ onOpenForm }: any) {
       </Paper>
 
       {/* MAIN */}
-      <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        <Box sx={{ flex: 1, overflow: "auto", px: 2 }}>
+      <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+        <Box sx={{ flex: 1, overflowY: "auto", scrollBehavior: "smooth", px: 2 }}>
 
-          {/* ROOM GRID */}
+          {/* ✅ ROOM GRID */}
           <Box display="grid" gridTemplateColumns="repeat(7,1fr)" gap={1} mb={2}>
             {rooms.map((room: any) => (
               <Paper
                 key={room.id}
                 onClick={() => {
-                  if (selected && selected.id === room.id) {
-                    setSelected(null);
-                  } else {
-                    setSelected(room);
-                  }
+                  if (selected && selected.id === room.id) setSelected(null);
+                  else setSelected(room);
                 }}
                 sx={{
                   p: 1,
@@ -171,6 +164,7 @@ export default function BookingList({ onOpenForm }: any) {
                   cursor: "pointer",
                   textAlign: "center",
                   background: selected?.id === room.id ? "#dbeafe" : "#fafbff",
+                  border: selected?.id === room.id ? "2px solid #3b82f6" : "1px solid #ddd"
                 }}
               >
                 <Typography fontSize={13} fontWeight="600">
@@ -220,6 +214,11 @@ export default function BookingList({ onOpenForm }: any) {
                     alignItems: "center",
                     p: 1,
                     borderBottom: "1px solid #eee",
+                    transition: "0.2s",
+                    "&:hover": {
+                      background: "#f1f5f9",
+                      transform: "scale(1.01)"
+                    }
                   }}
                 >
                   <Box display="flex" alignItems="center" gap={3}>
@@ -235,16 +234,14 @@ export default function BookingList({ onOpenForm }: any) {
                       {formatTime12(b.start_time)} - {formatTime12(b.end_time)}
                     </Typography>
 
-                    <Typography fontSize={12} color="gray">
-                      {b.reason}
-                    </Typography>
+                    <Chip label={b.reason} size="small" />
                   </Box>
 
                   <Box display="flex" gap={1}>
-                    {/* ✅ EDIT FIXED */}
                     <Button
                       size="small"
                       variant="outlined"
+                      startIcon={<EditIcon />}
                       sx={{ textTransform: "none" }}
                       onClick={() => {
                         setSelected(b);
@@ -254,11 +251,11 @@ export default function BookingList({ onOpenForm }: any) {
                       Edit
                     </Button>
 
-                    {/* ✅ DELETE FIXED */}
                     <Button
                       size="small"
                       variant="outlined"
                       color="error"
+                      startIcon={<DeleteIcon />}
                       sx={{ textTransform: "none" }}
                       onClick={() => {
                         setBookingToDelete(b.id);
@@ -270,12 +267,17 @@ export default function BookingList({ onOpenForm }: any) {
                   </Box>
                 </Box>
               ))}
+
+            {filteredBookings.length === 0 && (
+              <Typography textAlign="center" mt={2} color="gray">
+                No bookings for this date
+              </Typography>
+            )}
           </Paper>
 
         </Box>
       </Box>
 
-      {/* EDIT MODAL */}
       <BookingModal
         open={showModal}
         onClose={() => {
@@ -285,7 +287,6 @@ export default function BookingList({ onOpenForm }: any) {
         selected={selected}
       />
 
-      {/* DELETE CONFIRM */}
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
         <DialogTitle>Confirm Delete</DialogTitle>
 
@@ -296,14 +297,10 @@ export default function BookingList({ onOpenForm }: any) {
         </DialogContent>
 
         <DialogActions>
-          <Button
-            onClick={() => setConfirmOpen(false)}
-            sx={{ textTransform: "none" }}
-          >
+          <Button sx={{ textTransform: "none" }} onClick={() => setConfirmOpen(false)}>
             Cancel
           </Button>
 
-          {/* ✅ FINAL DELETE FIX */}
           <Button
             color="error"
             variant="contained"
