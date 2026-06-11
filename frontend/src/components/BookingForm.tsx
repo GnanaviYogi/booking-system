@@ -31,11 +31,19 @@ export default function BookingForm({ open, selected, onClose }: any) {
   const [userName, setUserName] = useState("");
   const [roomName, setRoomName] = useState("");
   const [capacity, setCapacity] = useState("");
-  const [date, setDate] = useState("");
+
+  // ✅ ✅ ADDED: auto today date
+  const getTodayDate = () => {
+    const d = new Date();
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 10);
+  };
+  const [date, setDate] = useState(getTodayDate());
+
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [reason, setReason] = useState("");
-
 
   useEffect(() => {
     if (selected?.prefill) {
@@ -51,13 +59,13 @@ export default function BookingForm({ open, selected, onClose }: any) {
     setUserName("");
     setRoomName("");
     setCapacity("");
-    setDate("");
+    setDate(getTodayDate()); // ✅ reset also sets today
     setStartTime("");
     setEndTime("");
     setReason("");
   };
 
-  // ✅ BOOKING COUNT
+  // ✅ BOOKING COUNT (kept but not used)
   const getBookingCount = () => {
     if (!userName || !date) return 0;
 
@@ -77,11 +85,6 @@ export default function BookingForm({ open, selected, onClose }: any) {
 
     if (!userName || !roomName || !capacity || !date || !startTime || !endTime || !reason) {
       enqueueSnackbar("Please fill all fields", { variant: "error" });
-      return;
-    }
-
-    if (bookingCount >= 3) {
-      enqueueSnackbar("Max 3 bookings per day", { variant: "error" });
       return;
     }
 
@@ -170,10 +173,6 @@ export default function BookingForm({ open, selected, onClose }: any) {
           onChange={(e) => setUserName(e.target.value)}
         />
 
-        <Typography color="error" sx={{ fontSize: "12px" }}>
-          {bookingCount}/3 bookings
-        </Typography>
-
         <Typography sx={{ fontSize: "13px" }}>Room *</Typography>
         <Select
           size="small"
@@ -259,4 +258,5 @@ export default function BookingForm({ open, selected, onClose }: any) {
     </DialogActions>
 
   </Dialog>
-  );}
+ );
+}

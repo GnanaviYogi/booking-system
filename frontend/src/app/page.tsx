@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import RoomList from "@/components/RoomList";
 import BookingList from "@/components/BookingList";
 import BookingForm from "@/components/BookingForm";
@@ -9,16 +9,10 @@ import { Dialog, DialogTitle, DialogContent } from "@mui/material";
 export default function Home() {
   const [showForm, setShowForm] = useState(false);
 
-  // ✅ lock background movement
-  useEffect(() => {
-    document.body.style.overflow = showForm ? "hidden" : "auto";
-  }, [showForm]);
-
   return (
     <div
       style={{
-        height: "100vh",
-        overflow: "auto",
+        minHeight: "100vh",
         background: "#f1f4f9",
         padding: "20px",
       }}
@@ -30,8 +24,8 @@ export default function Home() {
           color: "white",
           padding: "18px 20px",
           borderRadius: "12px",
-          fontSize: "30px",
-          fontWeight: "700",
+          fontSize: "28px",
+          fontWeight: "600",
           marginBottom: "15px",
           textAlign: "center",
           boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
@@ -45,50 +39,38 @@ export default function Home() {
         style={{
           display: "flex",
           gap: "12px",
-          height: "calc(100% - 80px)",
+          minHeight: "500px",
           background: "white",
           borderRadius: "15px",
           padding: "10px",
         }}
       >
-        {/* LEFT */}
-        <div style={{ width: "15%", paddingRight: "10px" }}>
+        <div style={{ width: "15%" }}>
           <RoomList />
-
-        
         </div>
 
-        {/* RIGHT */}
-        <div style={{ width: "85%", overflow: "hidden"}}>
-          <BookingList />
+        <div style={{ width: "85%", overflow: "auto" }}>
+          <BookingList onOpenForm={() => setShowForm(true)} />
         </div>
       </div>
 
-      {/* ✅ FULLY STATIC DIALOG */}
+      {/* ✅ SINGLE DIALOG */}
       <Dialog
         open={showForm}
         onClose={() => setShowForm(false)}
         fullWidth
-        transitionDuration={0}
-        disableScrollLock
-        keepMounted
-        sx={{
-          "& .MuiDialog-paper": {
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            overflow: "hidden",
-          },
-        }}
       >
         <DialogTitle>Book Room</DialogTitle>
 
-        <DialogContent sx={{ overflow: "hidden" }}>
-          <BookingForm />
+        <DialogContent>
+          {/* ✅ FIXED */}
+          <BookingForm
+            open={showForm}
+            selected={null}
+            onClose={() => setShowForm(false)}
+          />
         </DialogContent>
       </Dialog>
     </div>
   );
 }
-
