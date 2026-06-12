@@ -32,7 +32,6 @@ export default function BookingForm({ open, selected, onClose }: any) {
   const [roomName, setRoomName] = useState("");
   const [capacity, setCapacity] = useState("");
 
-  // ✅ ✅ ADDED: auto today date
   const getTodayDate = () => {
     const d = new Date();
     return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
@@ -54,18 +53,16 @@ export default function BookingForm({ open, selected, onClose }: any) {
     }
   }, [selected]);
 
-  // ✅ RESET
   const resetForm = () => {
     setUserName("");
     setRoomName("");
     setCapacity("");
-    setDate(getTodayDate()); // ✅ reset also sets today
+    setDate(getTodayDate());
     setStartTime("");
     setEndTime("");
     setReason("");
   };
 
-  // ✅ BOOKING COUNT (kept but not used)
   const getBookingCount = () => {
     if (!userName || !date) return 0;
 
@@ -80,7 +77,6 @@ export default function BookingForm({ open, selected, onClose }: any) {
 
   const bookingCount = getBookingCount();
 
-  // ✅ SUBMIT
   const handleSubmit = async () => {
 
     if (!userName || !roomName || !capacity || !date || !startTime || !endTime || !reason) {
@@ -155,7 +151,7 @@ export default function BookingForm({ open, selected, onClose }: any) {
     open={open}
     onClose={onClose}
     fullWidth
-    transitionDuration={{ appear: 0, enter: 0, exit: 0 }} 
+    transitionDuration={{ appear: 0, enter: 0, exit: 0 }}
   >
 
     <DialogTitle sx={{ fontSize: "16px", pb: 1 }}>
@@ -167,63 +163,29 @@ export default function BookingForm({ open, selected, onClose }: any) {
       <Box display="flex" flexDirection="column" gap={0.7} mt={1}>
 
         <Typography sx={{ fontSize: "13px" }}>User Name *</Typography>
-        <TextField
-          size="small"
-          value={userName}
-          onChange={(e) => setUserName(e.target.value)}
-        />
+        <TextField size="small" value={userName} onChange={(e) => setUserName(e.target.value)} />
 
         <Typography sx={{ fontSize: "13px" }}>Room *</Typography>
-        <Select
-          size="small"
-          value={roomName}
-          onChange={(e) => setRoomName(e.target.value)}
-        >
+        <Select size="small" value={roomName} onChange={(e) => setRoomName(e.target.value)}>
           {rooms.map((r: any) => (
-            <MenuItem key={r.id} value={r.name}>
-              {r.name}
-            </MenuItem>
+            <MenuItem key={r.id} value={r.name}>{r.name}</MenuItem>
           ))}
         </Select>
 
         <Typography sx={{ fontSize: "13px" }}>Capacity *</Typography>
-        <TextField
-          size="small"
-          type="number"
-          value={capacity}
-          onChange={(e) => setCapacity(e.target.value)}
-        />
+        <TextField size="small" type="number" value={capacity} onChange={(e) => setCapacity(e.target.value)} />
 
         <Typography sx={{ fontSize: "13px" }}>Date *</Typography>
-        <TextField
-          type="date"
-          size="small"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
+        <TextField type="date" size="small" value={date} onChange={(e) => setDate(e.target.value)} />
 
         <Typography sx={{ fontSize: "13px" }}>Start Time *</Typography>
-        <TextField
-          type="time"
-          size="small"
-          value={startTime}
-          onChange={(e) => setStartTime(e.target.value)}
-        />
+        <TextField type="time" size="small" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
 
         <Typography sx={{ fontSize: "13px" }}>End Time *</Typography>
-        <TextField
-          type="time"
-          size="small"
-          value={endTime}
-          onChange={(e) => setEndTime(e.target.value)}
-        />
+        <TextField type="time" size="small" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
 
         <Typography sx={{ fontSize: "13px" }}>Reason *</Typography>
-        <Select
-          size="small"
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-        >
+        <Select size="small" value={reason} onChange={(e) => setReason(e.target.value)}>
           <MenuItem value="">Select Reason</MenuItem>
           <MenuItem value="Meeting">Meeting</MenuItem>
           <MenuItem value="Interview">Interview</MenuItem>
@@ -243,6 +205,7 @@ export default function BookingForm({ open, selected, onClose }: any) {
         onClick={handleSubmit}
         variant="contained"
         size="small"
+        sx={{ textTransform: "none" }}   // ✅ FIX
       >
         Book
       </Button>
@@ -251,6 +214,7 @@ export default function BookingForm({ open, selected, onClose }: any) {
         onClick={onClose}
         variant="outlined"
         size="small"
+        sx={{ textTransform: "none" }}   // ✅ FIX
       >
         Close
       </Button>

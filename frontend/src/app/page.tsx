@@ -8,13 +8,16 @@ import { Dialog, DialogTitle, DialogContent } from "@mui/material";
 
 export default function Home() {
   const [showForm, setShowForm] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
 
   return (
     <div
       style={{
-        minHeight: "100vh",
+        height: "100vh",
+        overflow: "hidden",
+        boxSizing: "border-box",   // ✅ FIX
         background: "linear-gradient(120deg, #dbeafe, #f0f9ff, #eef2ff)",
-        padding: "20px",
+        padding: "10px",           // ✅ FIX
       }}
     >
       {/* HEADER */}
@@ -41,7 +44,7 @@ export default function Home() {
         style={{
           display: "flex",
           gap: "12px",
-          minHeight: "500px",
+          height: "calc(100% - 80px)",
           background: "rgba(255,255,255,0.85)",
           backdropFilter: "blur(8px)",
           borderRadius: "15px",
@@ -57,12 +60,16 @@ export default function Home() {
             background: "linear-gradient(#eff6ff, #f1f5f9)",
             padding: "6px",
             boxShadow: "inset 0 0 6px rgba(0,0,0,0.05)",
+            overflowY: "auto",
           }}
         >
-          <RoomList />
+          <RoomList
+            selectedRoom={selectedRoom}
+            onSelectRoom={setSelectedRoom}
+          />
         </div>
 
-        {/* ✅ RIGHT SIDE (ONLY CHANGE HERE) */}
+        {/* RIGHT SIDE */}
         <div
           style={{
             width: "85%",
@@ -71,20 +78,18 @@ export default function Home() {
             backgroundImage:
               "linear-gradient(to bottom right, #ffffff, #f8fafc)",
             overflow: "hidden",
-
-            padding: "12px",   // ✅ ✅ THIS FIXES YOUR ISSUE
+            padding: "12px",
           }}
         >
-          <BookingList onOpenForm={() => setShowForm(true)} />
+          <BookingList
+            onOpenForm={() => setShowForm(true)}
+            selectedRoom={selectedRoom}
+          />
         </div>
       </div>
 
       {/* DIALOG */}
-      <Dialog
-        open={showForm}
-        onClose={() => setShowForm(false)}
-        fullWidth
-      >
+      <Dialog open={showForm} onClose={() => setShowForm(false)} fullWidth>
         <DialogTitle sx={{ fontWeight: "600", color: "#1d4ed8" }}>
           Book Room
         </DialogTitle>

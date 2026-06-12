@@ -43,7 +43,7 @@ export default function FilterBar({
           value={searchUser}
           onChange={(e) => {
             setSearchUser(e.target.value);
-            setError(""); // clear error while typing
+            setError(""); 
           }}
           error={!!error}
           helperText={error}

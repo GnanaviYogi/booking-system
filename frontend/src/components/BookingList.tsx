@@ -27,7 +27,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import BookingModal from "./BookingModal";
 import FilterBar from "./FilterBar";
 
-export default function BookingList({ onOpenForm }: any) {
+export default function BookingList({ onOpenForm, selectedRoom }: any) {
 
   const [searchUser, setSearchUser] = useState("");
   const [filterRoom, setFilterRoom] = useState("");
@@ -47,6 +47,22 @@ export default function BookingList({ onOpenForm }: any) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [bookingToDelete, setBookingToDelete] = useState<any>(null);
 
+  const roomColors: any = {
+    Ganga: "#2563eb",
+    Yamuna: "#16a34a",
+    Kaveri: "#7c3aed",
+    Narmada: "#ea580c",
+    Saraswathi: "#0891b2",
+    Brahmaputra: "#dc2626",
+    Godavari: "#4f46e5",
+    Krishna: "#0d9488",
+    Mahanadi: "#ca8a04",
+    Sabarmati: "#c026d3",
+    Tapti: "#65a30d",
+    Indus: "#0284c7",
+    Saraswati: "#9333ea",
+  };
+
   const getLocalDate = (d: Date) =>
     new Date(d.getTime() - d.getTimezoneOffset() * 60000)
       .toISOString()
@@ -60,6 +76,11 @@ export default function BookingList({ onOpenForm }: any) {
     newDate.setDate(date.getDate() + n);
     setDate(newDate);
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {}, 500);
+    return () => clearTimeout(timer);
+  }, [searchUser, filterRoom, filterDate, filterReason]);
 
   const formatTime12 = (time: string) => {
     const [h, m] = time.split(":").map(Number);
@@ -79,45 +100,31 @@ export default function BookingList({ onOpenForm }: any) {
   });
 
   return (
-    <Box sx={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
 
-      {/* ✅ STICKY HEADER */}
-      <Paper
-        sx={{
-          p: 1.5,
-          mb: 1,
-          borderRadius: 3,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          background: "linear-gradient(135deg,#1e3c72,#2a5298)",
-          color: "white",
-          flexShrink: 0,
-          position: "sticky",
-          top: 0,
-          zIndex: 10,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.15)"
-        }}
-      >
-        <Button
-          variant="outlined"
-          sx={{ color: "white", borderColor: "white", textTransform: "none" }}
-          onClick={() => shiftDate(-1)}
-        >
+      {/* HEADER */}
+      <Paper sx={{
+        p: 1.5,
+        mb: 1,
+        borderRadius: 3,
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        background: "linear-gradient(135deg,#1e3c72,#2a5298)",
+        color: "white",
+        flexShrink: 0,
+        position: "sticky",
+        top: 0,
+        zIndex: 10,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.15)"
+      }}>
+        <Button variant="outlined" sx={{ color: "white", borderColor: "white", textTransform: "none" }} onClick={() => shiftDate(-1)}>
           Prev
         </Button>
 
         <Box display="flex" alignItems="center" gap={2}>
           <Typography fontWeight="bold">{date.toDateString()}</Typography>
-
-          <TextField
-            type="date"
-            size="small"
-            value={currentDateStr}
-            onChange={(e) => setDate(new Date(e.target.value))}
-            sx={{ background: "white", borderRadius: 1 }}
-          />
-
+          <TextField type="date" size="small" value={currentDateStr} onChange={(e) => setDate(new Date(e.target.value))} sx={{ background: "white", borderRadius: 1 }} />
           <CalendarMonthIcon />
         </Box>
 
@@ -130,16 +137,7 @@ export default function BookingList({ onOpenForm }: any) {
             Next
           </Button>
 
-          <Button
-            variant="contained"
-            sx={{
-              background: "white",
-              color: "#1e3c72",
-              ml: 1,
-              textTransform: "none"
-            }}
-            onClick={onOpenForm}
-          >
+          <Button variant="contained" sx={{ background: "white", color: "#1e3c72", ml: 1, textTransform: "none" }} onClick={onOpenForm}>
             Book Form
           </Button>
         </Box>
@@ -147,61 +145,26 @@ export default function BookingList({ onOpenForm }: any) {
 
       {/* MAIN */}
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-        <Box sx={{ flex: 1, overflowY: "auto", scrollBehavior: "smooth", px: 2 }}>
 
-          {/* ✅ ROOM GRID */}
-          <Box display="grid" gridTemplateColumns="repeat(7,1fr)" gap={1} mb={2}>
-            {rooms.map((room: any) => (
-              <Paper
-                key={room.id}
-                onClick={() => {
-                  if (selected && selected.id === room.id) setSelected(null);
-                  else setSelected(room);
-                }}
-                sx={{
-                  p: 1,
-                  borderRadius: 2,
-                  cursor: "pointer",
-                  textAlign: "center",
-                  background: selected?.id === room.id ? "#dbeafe" : "#fafbff",
-                  border: selected?.id === room.id ? "2px solid #3b82f6" : "1px solid #ddd"
-                }}
-              >
-                <Typography fontSize={13} fontWeight="600">
-                  {room.name}
-                </Typography>
+        {/* FILTER (STATIC) */}
+        <Paper sx={{ p: 2, mb: 2, borderRadius: 3, mx: 2 }}>
+          <FilterBar {...{
+            searchUser, setSearchUser, filterRoom, setFilterRoom,
+            filterDate, setFilterDate, reason: filterReason,
+            setReason: setFilterReason, rooms
+          }} onSearch={() => {}} />
+        </Paper>
 
-                <Typography fontSize={10} color="gray">
-                  {room.capacity}
-                </Typography>
-              </Paper>
-            ))}
-          </Box>
+        {/* BOOKINGS SCROLL ONLY */}
+        <Box sx={{ flex: 1, overflowY: "auto", px: 2 }}>
 
-          {/* FILTER */}
-          <Paper sx={{ p: 2, mb: 2, borderRadius: 3 }}>
-            <FilterBar
-              searchUser={searchUser}
-              setSearchUser={setSearchUser}
-              filterRoom={filterRoom}
-              setFilterRoom={setFilterRoom}
-              filterDate={filterDate}
-              setFilterDate={setFilterDate}
-              reason={filterReason}
-              setReason={setFilterReason}
-              rooms={rooms}
-              onSearch={() => {}}
-            />
-          </Paper>
-
-          {/* BOOKINGS */}
-          <Paper sx={{ mt: 2, p: 2, borderRadius: 3 }}>
+          <Paper sx={{ p: 2, borderRadius: 3 }}>
             <Typography fontWeight="bold" mb={2}>
-              {selected ? `Bookings for ${selected.name}` : "All Bookings"}
+              {selectedRoom ? `Bookings for ${selectedRoom}` : "All Bookings"}
             </Typography>
 
-            {(selected
-              ? filteredBookings.filter((b: any) => b.room_name === selected.name)
+            {(selectedRoom
+              ? filteredBookings.filter((b: any) => b.room_name === selectedRoom)
               : filteredBookings
             )
               .sort((a: any, b: any) => a.start_time.localeCompare(b.start_time))
@@ -212,56 +175,47 @@ export default function BookingList({ onOpenForm }: any) {
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    p: 1,
+                    p: "6px 10px",
+                    minHeight: "36px",
                     borderBottom: "1px solid #eee",
-                    transition: "0.2s",
+                    borderLeft: `4px solid ${roomColors[b.room_name] || "#ccc"}`,
+                    background: `${roomColors[b.room_name]}10`,
                     "&:hover": {
-                      background: "#f1f5f9",
-                      transform: "scale(1.01)"
+                      background: `${roomColors[b.room_name]}20`,
                     }
                   }}
                 >
-                  <Box display="flex" alignItems="center" gap={3}>
-                    <Typography fontSize={12} fontWeight="600" minWidth={80}>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <Typography fontSize={11} fontWeight="600" minWidth={70} sx={{ color: roomColors[b.room_name] }}>
                       {b.room_name}
                     </Typography>
 
-                    <Typography fontSize={12} minWidth={100}>
+                    <Typography fontSize={11} minWidth={90}>
                       {b.user_name}
                     </Typography>
 
-                    <Typography fontSize={12} minWidth={140}>
+                    <Typography fontSize={11} minWidth={130}>
                       {formatTime12(b.start_time)} - {formatTime12(b.end_time)}
                     </Typography>
 
-                    <Chip label={b.reason} size="small" />
+                    <Chip
+                      label={b.reason}
+                      size="small"
+                      sx={{
+                        height: "20px",
+                        fontSize: "10px",
+                        background: `${roomColors[b.room_name]}20`,
+                        color: roomColors[b.room_name],
+                      }}
+                    />
                   </Box>
 
                   <Box display="flex" gap={1}>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      startIcon={<EditIcon />}
-                      sx={{ textTransform: "none" }}
-                      onClick={() => {
-                        setSelected(b);
-                        setShowModal(true);
-                      }}
-                    >
+                    <Button size="small" variant="outlined" startIcon={<EditIcon />} sx={{ textTransform: "none", padding: "2px 6px" }} onClick={() => { setSelected(b); setShowModal(true); }}>
                       Edit
                     </Button>
 
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="error"
-                      startIcon={<DeleteIcon />}
-                      sx={{ textTransform: "none" }}
-                      onClick={() => {
-                        setBookingToDelete(b.id);
-                        setConfirmOpen(true);
-                      }}
-                    >
+                    <Button size="small" variant="outlined" color="error" startIcon={<DeleteIcon />} sx={{ textTransform: "none", padding: "2px 6px" }} onClick={() => { setBookingToDelete(b.id); setConfirmOpen(true); }}>
                       Delete
                     </Button>
                   </Box>
@@ -278,22 +232,15 @@ export default function BookingList({ onOpenForm }: any) {
         </Box>
       </Box>
 
-      <BookingModal
-        open={showModal}
-        onClose={() => {
-          setShowModal(false);
-          setSelected(null);
-        }}
-        selected={selected}
-      />
+      {/* MODAL */}
+      <BookingModal open={showModal} onClose={() => { setShowModal(false); setSelected(null); }} selected={selected} />
 
+      {/* DELETE CONFIRM */}
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
         <DialogTitle>Confirm Delete</DialogTitle>
 
         <DialogContent>
-          <Typography>
-            Are you sure you want to delete this booking?
-          </Typography>
+          <Typography>Are you sure you want to delete this booking?</Typography>
         </DialogContent>
 
         <DialogActions>
@@ -301,17 +248,10 @@ export default function BookingList({ onOpenForm }: any) {
             Cancel
           </Button>
 
-          <Button
-            color="error"
-            variant="contained"
-            sx={{ textTransform: "none" }}
-            onClick={async () => {
-              if (bookingToDelete) {
-                await deleteBooking(bookingToDelete);
-              }
-              setConfirmOpen(false);
-            }}
-          >
+          <Button color="error" variant="contained" sx={{ textTransform: "none" }} onClick={async () => {
+            if (bookingToDelete) await deleteBooking(bookingToDelete);
+            setConfirmOpen(false);
+          }}>
             Delete
           </Button>
         </DialogActions>

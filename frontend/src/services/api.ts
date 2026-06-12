@@ -15,7 +15,7 @@ export const api = createApi({
     getBookings: builder.query({
   query: (params) => ({
     url: "bookings/",
-    params: params, // ✅ THIS IS THE KEY FIX
+    params: params, 
   }),
   providesTags: ["Bookings"],
 }),
@@ -38,15 +38,15 @@ export const api = createApi({
       },
     }),
 
-    // ✅ ✅ ✅ UPDATE BOOKING (THIS IS CORRECT)
+    // ✅ UPDATE BOOKING
     updateBooking: builder.mutation({
       query: ({ id, ...data }) => ({
         url: `bookings/${id}/`,
-        method: "PATCH",   // ✅ correct for partial update
+        method: "PATCH",   
         body: data,
       }),
 
-      invalidatesTags: ["Bookings"], // ✅ auto refresh
+      invalidatesTags: ["Bookings"], 
     }),
 
     // ✅ DELETE BOOKING
@@ -66,6 +66,6 @@ export const {
   useGetBookingsQuery,
   useGetRoomsQuery,
   useCreateBookingMutation,
-  useUpdateBookingMutation,   // ✅ used in BookingForm
+  useUpdateBookingMutation,   
   useDeleteBookingMutation,
 } = api;
