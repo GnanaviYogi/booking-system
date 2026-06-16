@@ -1,3 +1,5 @@
+"use client";
+
 import { Box, Typography, Paper, Modal, Button } from "@mui/material";
 import { useState } from "react";
 
@@ -13,14 +15,13 @@ export default function ScheduleGrid({
   const [open, setOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
 
-  
   const reasonColors: any = {
-    Meeting: "#BBDEFB",       
-    Interview: "#D1C4E9",     
-    Training: "#F8BBD0",      
-    Presentation: "#FFF9C4",  
-    Workshop: "#EF9A9A",      
-    Other: "#CFD8DC",         
+    Meeting: "#BBDEFB",
+    Interview: "#D1C4E9",
+    Training: "#F8BBD0",
+    Presentation: "#FFF9C4",
+    Workshop: "#EF9A9A",
+    Other: "#CFD8DC",
   };
 
   const toMinutes = (t?: string) => {
@@ -44,7 +45,8 @@ export default function ScheduleGrid({
   };
 
   const formatRoomName = (name: string) =>
-    name.split(" ")
+    name
+      .split(" ")
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(" ");
 
@@ -77,6 +79,8 @@ export default function ScheduleGrid({
               (!currentDateStr || b.date?.slice(0, 10) === currentDateStr)
             );
 
+            const usedSlots = new Set<string>();
+
             return (
               <Box
                 key={room.id}
@@ -85,18 +89,24 @@ export default function ScheduleGrid({
                 mt={1}
               >
 
+                {/* ROOM NAME */}
                 <Typography fontSize={13}>
                   {formatRoomName(room.name)}
                 </Typography>
 
+                {/* TIME SLOTS */}
                 {times.map((h: number, i: number) => {
 
-                  const slotBookings = roomBookings.filter((b: any) => {
+                  const booking = roomBookings.find((b: any) => {
                     const startHour = Math.floor(toMinutes(b.start_time) / 60);
                     return startHour === h;
                   });
 
-                  if (!slotBookings.length) {
+                  const slotKey = `${room.id}-${h}`;
+
+                  if (usedSlots.has(slotKey)) return null;
+
+                  if (!booking) {
                     return (
                       <Paper
                         key={i}
@@ -105,58 +115,67 @@ export default function ScheduleGrid({
                           background: "#f5f7fa",
                           m: "4px",
                           borderRadius: 2,
+                          cursor: "pointer",
+                          "&:hover": { background: "#e3f2fd" }
+                        }}
+                        onClick={() => {
+                          onEdit && onEdit({
+                            room_name: room.name,
+                            start_time: `${h.toString().padStart(2, "0")}:00`,
+                            end_time: `${(h + 1).toString().padStart(2, "0")}:00`,
+                            date: currentDateStr
+                          });
                         }}
                       />
                     );
                   }
 
-                  return slotBookings.map((booking: any) => {
+                  const duration =
+                    (toMinutes(booking.end_time) - toMinutes(booking.start_time)) / 60;
 
-                    const duration =
-                      (toMinutes(booking.end_time) - toMinutes(booking.start_time)) / 60;
-                    const span = Math.max(1, duration);
+                  const span = Math.max(1, Math.round(duration));
 
-                    return (
-                      <Paper
-                        key={booking.id}
-                        onClick={() => handleBookingClick(booking)}
-                        sx={{
-                          gridColumn: `${i + 2} / span ${span}`,
-                          height: 60,
+                  for (let offset = 0; offset < span; offset++) {
+                    usedSlots.add(`${room.id}-${h + offset}`);
+                  }
 
-                          background: reasonColors[booking.reason] || "#E0E0E0",
-                          color: "#1A1A1A",
+                  return (
+                    <Paper
+                      key={booking.id}
+                      onClick={() => handleBookingClick(booking)}
+                      sx={{
+                        gridColumn: `${i + 2} / span ${span}`,
+                        height: 60,
+                        background: reasonColors[booking.reason] || "#E0E0E0",
+                        color: "#1A1A1A",
+                        cursor: "pointer",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: 2,
+                        m: "6px",
+                        boxShadow: "0px 2px 6px rgba(0,0,0,0.12)",
+                        border: "1px solid rgba(0,0,0,0.08)",
+                        transition: "0.2s",
+                        "&:hover": {
+                          transform: "translateY(-2px)",
+                          boxShadow: "0px 4px 10px rgba(0,0,0,0.18)"
+                        }
+                      }}
+                    >
+                      {/* ✅ KEEP ONLY THESE */}
+                      <Typography fontSize={11} fontWeight="600">
+                        {booking.reason}
+                      </Typography>
 
-                          cursor: "pointer",
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
+                      <Typography fontSize={10}>
+                        {booking.user_name}
+                      </Typography>
 
-                          borderRadius: 2,
-                          m: "6px",
-
-                          boxShadow: "0px 2px 6px rgba(0,0,0,0.12)",
-                          border: "1px solid rgba(0,0,0,0.08)",
-
-                          transition: "all 0.2s ease",
-                          "&:hover": {
-                            transform: "translateY(-2px)",
-                            boxShadow: "0px 4px 10px rgba(0,0,0,0.18)",
-                          },
-                        }}
-                      >
-                        <Typography fontSize={11} fontWeight="600">
-                          {booking.reason}
-                        </Typography>
-
-                        <Typography fontSize={10} sx={{ opacity: 0.75 }}>
-                          {formatTime12(booking.start_time)} -{" "}
-                          {formatTime12(booking.end_time)}
-                        </Typography>
-                      </Paper>
-                    );
-                  });
+                      {/* ❌ REMOVED TIME DISPLAY HERE */}
+                    </Paper>
+                  );
                 })}
 
               </Box>
