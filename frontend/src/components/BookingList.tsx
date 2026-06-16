@@ -23,6 +23,10 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
+// ✅ NEW ICONS
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+
 import BookingModal from "./BookingModal";
 import FilterBar from "./FilterBar";
 import ScheduleGrid from "./ScheduleGrid";
@@ -47,7 +51,7 @@ export default function BookingList({ onOpenForm, selectedRoom }: any) {
 
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
 
-  // ✅ PAGINATION STATE (ONLY ADDITION)
+  // ✅ PAGINATION STATE
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -106,11 +110,18 @@ export default function BookingList({ onOpenForm, selectedRoom }: any) {
     );
   });
 
-  const shuffledBookings = useMemo(() => {
-    return [...filteredBookings].sort(() => Math.random() - 0.5);
-  }, [filteredBookings]);
+ const shuffledBookings = useMemo(() => {
+  const arr = [...filteredBookings];
 
-  // ✅ PAGINATION LOGIC (ONLY ADDITION)
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+
+  return arr;
+}, [filteredBookings]);
+
+
   const totalPages = Math.ceil(shuffledBookings.length / itemsPerPage);
 
   const paginatedBookings = shuffledBookings.slice(
@@ -118,10 +129,9 @@ export default function BookingList({ onOpenForm, selectedRoom }: any) {
     page * itemsPerPage
   );
 
-  // ✅ RESET PAGE (ONLY ADDITION)
   useEffect(() => {
     setPage(1);
-  }, [searchUser, filterRoom, filterDate, filterReason, date]);
+  }, [searchUser, filterRoom, filterDate, filterReason, date, selectedRoom]);
 
   const handleEdit = (b: any) => {
     setSelected(b);
@@ -223,19 +233,16 @@ export default function BookingList({ onOpenForm, selectedRoom }: any) {
               <Typography align="right" fontSize="13px">Actions</Typography>
             </Box>
 
-            {/* ✅ ONLY CHANGE HERE */}
             {paginatedBookings.map((b: any) => (
-              <Box key={b.id}
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "1.5fr 1fr 1.5fr 1fr 1fr",
-                  alignItems: "center",
-                  p: 1,
-                  borderLeft: `4px solid ${roomColors[b.room_name]}`,
-                  background: `${roomColors[b.room_name]}10`,
-                  mb: 0.5,
-                }}
-              >
+              <Box key={b.id} sx={{
+                display: "grid",
+                gridTemplateColumns: "1.5fr 1fr 1.5fr 1fr 1fr",
+                alignItems: "center",
+                p: 1,
+                borderLeft: `4px solid ${roomColors[b.room_name]}`,
+                background: `${roomColors[b.room_name]}10`,
+                mb: 0.5,
+              }}>
                 <Typography sx={{ color: roomColors[b.room_name], fontWeight: 600, fontSize: "13px" }}>
                   {b.room_name}
                 </Typography>
@@ -262,11 +269,31 @@ export default function BookingList({ onOpenForm, selectedRoom }: any) {
               </Box>
             ))}
 
-            {/* ✅ PAGINATION UI */}
-            <Box display="flex" justifyContent="center" gap={2} mt={2}>
-              <Button disabled={page === 1} onClick={() => setPage(page - 1)}>Prev</Button>
-              <Typography fontSize="13px">Page {page} of {totalPages || 1}</Typography>
-              <Button disabled={page === totalPages || totalPages === 0} onClick={() => setPage(page + 1)}>Next</Button>
+            {/* ✅ UPDATED PAGINATION */}
+            <Box display="flex" justifyContent="center" alignItems="center" gap={1} mt={2}>
+
+              <Button
+                size="small"
+                disabled={page === 1}
+                onClick={() => setPage(page - 1)}
+                sx={{ minWidth: "30px", p: 0.5 }}
+              >
+                <ArrowBackIosNewIcon sx={{ fontSize: 14 }} />
+              </Button>
+
+              <Typography fontSize="12px">
+                {page} / {totalPages || 1}
+              </Typography>
+
+              <Button
+                size="small"
+                disabled={page === totalPages || totalPages === 0}
+                onClick={() => setPage(page + 1)}
+                sx={{ minWidth: "30px", p: 0.5 }}
+              >
+                <ArrowForwardIosIcon sx={{ fontSize: 14 }} />
+              </Button>
+
             </Box>
 
           </Paper>
@@ -293,8 +320,7 @@ export default function BookingList({ onOpenForm, selectedRoom }: any) {
             onClick={async () => {
               if (bookingToDelete) await deleteBooking(bookingToDelete);
               setConfirmOpen(false);
-            }}
-          >
+            }}>
             Delete
           </Button>
         </DialogActions>
@@ -303,4 +329,3 @@ export default function BookingList({ onOpenForm, selectedRoom }: any) {
     </Box>
   );
 }
-``

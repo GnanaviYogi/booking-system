@@ -16,20 +16,40 @@ export default function FilterBar({
   onSearch,
 }: any) {
 
-  // ✅ Validation state
   const [error, setError] = useState("");
 
-  // ✅ Validate username (only alphabets)
+  // ✅ INPUT VALIDATION + AUTO CLEAR ERROR
+  const handleUserChange = (value: string) => {
+    const regex = /^[A-Za-z\s]*$/;
+
+    if (regex.test(value)) {
+      setSearchUser(value);
+      setError("");
+    } else {
+      setError("Only alphabets allowed");
+
+      // ✅ clear error after 5 seconds
+      setTimeout(() => {
+        setError("");
+      }, 1000);
+    }
+  };
+
   const validateAndSearch = () => {
     const regex = /^[A-Za-z\s]*$/;
 
     if (searchUser && !regex.test(searchUser)) {
       setError("User name should contain only alphabets");
+
+      setTimeout(() => {
+        setError("");
+      }, 1000);
+
       return;
     }
 
-    setError(""); 
-    onSearch();   
+    setError("");
+    onSearch();
   };
 
   return (
@@ -41,10 +61,7 @@ export default function FilterBar({
           size="small"
           label="Search User"
           value={searchUser}
-          onChange={(e) => {
-            setSearchUser(e.target.value);
-            setError(""); 
-          }}
+          onChange={(e) => handleUserChange(e.target.value)}
           error={!!error}
           helperText={error}
           onKeyDown={(e) => {
@@ -101,7 +118,6 @@ export default function FilterBar({
         }}
       />
 
-     
       {/* ✅ CLEAR BUTTON */}
       <Button
         variant="outlined"

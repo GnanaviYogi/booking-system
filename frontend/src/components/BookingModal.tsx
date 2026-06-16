@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Dialog,
   DialogTitle,
@@ -9,94 +11,103 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import { useState, useEffect } from "react";
+
+import { useEffect } from "react";
 import {
   useGetRoomsQuery,
-  useUpdateBookingMutation, 
+  useUpdateBookingMutation,
 } from "@/services/api";
 import { useSnackbar } from "notistack";
 
-export default function BookingModal({
-  open,
-  onClose,
-  selected,
-}: any) {
+import { useForm, Controller } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+
+// ✅ ZOD SCHEMA
+const schema = z.object({
+  userName: z.string().min(1, "User is required"),
+  roomName: z.string().min(1, "Room is required"),
+  capacity: z.string().min(1, "Capacity is required"),
+  date: z.string().min(1, "Date is required"),
+  startTime: z.string().min(1, "Start time is required"),
+  endTime: z.string().min(1, "End time is required"),
+  reason: z.string().min(1, "Reason is required"),
+}).refine((data) => {
+  return data.endTime > data.startTime;
+}, {
+  message: "End time must be greater than start time",
+  path: ["endTime"],
+});
+
+
+export default function BookingModal({ open, onClose, selected }: any) {
 
   const { data: rooms = [] } = useGetRoomsQuery(undefined);
-  const [updateBooking] = useUpdateBookingMutation(); 
+  const [updateBooking] = useUpdateBookingMutation();
 
   const { enqueueSnackbar } = useSnackbar();
 
-  const [userName, setUserName] = useState("");
-  const [date, setDate] = useState("");
-  const [reason, setReason] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [roomName, setRoomName] = useState("");
-  const [capacity, setCapacity] = useState("");
+  const {
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      userName: "",
+      roomName: "",
+      capacity: "",
+      date: "",
+      startTime: "",
+      endTime: "",
+      reason: "",
+    },
+  });
 
   useEffect(() => {
     if (selected) {
-      setUserName(selected.user_name || "");
-      setDate(selected.date?.slice(0, 10) || "");
-      setReason(selected.reason || "");
-      setStartTime(selected.start_time?.slice(0, 5) || "");
-      setEndTime(selected.end_time?.slice(0, 5) || "");
-      setRoomName(selected.room_name || "");
-      setCapacity(selected.required_capacity || "");
+      setValue("userName", selected.user_name || "");
+      setValue("date", selected.date?.slice(0, 10) || "");
+      setValue("reason", selected.reason || "");
+      setValue("startTime", selected.start_time?.slice(0, 5) || "");
+      setValue("endTime", selected.end_time?.slice(0, 5) || "");
+      setValue("roomName", selected.room_name || "");
+      setValue("capacity", selected.required_capacity?.toString() || "");
     } else {
-      setUserName("");
-      setDate("");
-      setReason("");
-      setStartTime("");
-      setEndTime("");
-      setRoomName("");
-      setCapacity("");
+      reset();
     }
-  }, [selected, open]);
+  }, [selected, open, setValue, reset]);
 
-  const handleSave = async () => {
 
-    if (
-      !userName ||
-      !roomName ||
-      !date ||
-      !startTime ||
-      !endTime ||
-      !capacity ||
-      !reason
-    ) {
-      enqueueSnackbar("Please fill all fields", { variant: "error" });
+  const onSubmit = async (data: any) => {
+
+    if (!selected?.id) {
+      enqueueSnackbar("Invalid edit operation", { variant: "error" });
       return;
     }
 
     try {
-      if (selected?.id) {
-        await updateBooking({
-          id: selected.id,
-          user_name: userName,
-          room_name: roomName,
-          required_capacity: Number(capacity),
-          date,
-          start_time: `${startTime}:00`,
-          end_time: `${endTime}:00`,
-          reason,
-        }).unwrap();
-      } else {
-        enqueueSnackbar("Invalid edit operation", { variant: "error" });
-        return;
-      }
+      await updateBooking({
+        id: selected.id,
+        user_name: data.userName,
+        room_name: data.roomName,
+        required_capacity: Number(data.capacity),
+        date: data.date,
+        start_time: `${data.startTime}:00`,
+        end_time: `${data.endTime}:00`,
+        reason: data.reason,
+      }).unwrap();
 
-      enqueueSnackbar(" Booking updated successfully", {
+      enqueueSnackbar("Booking updated successfully", {
         variant: "success",
-        autoHideDuration: 3000,
       });
 
       onClose();
 
     } catch (error: any) {
-      console.log("FULL ERROR:", error);
-
       let message = "Booking failed";
 
       if (error?.data?.detail) {
@@ -119,6 +130,7 @@ export default function BookingModal({
     }
   };
 
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth>
 
@@ -129,88 +141,130 @@ export default function BookingModal({
       <DialogContent>
 
         <Typography>User</Typography>
-        <TextField
-          fullWidth
-          size="small"
-          value={userName}
-          onChange={(e) => setUserName(e.target.value)}
+        <Controller
+          name="userName"
+          control={control}
+          render={({ field }) => (
+            <TextField
+              fullWidth
+              size="small"
+              {...field}
+              error={!!errors.userName}
+              helperText={errors.userName?.message}
+            />
+          )}
         />
 
         <Typography mt={1}>Room</Typography>
-        <Select
-          fullWidth
-          size="small"
-          value={roomName}
-          onChange={(e) => setRoomName(e.target.value)}
-        >
-          {rooms.map((r: any) => (
-            <MenuItem key={r.id} value={r.name}>
-              {r.name}
-            </MenuItem>
-          ))}
-        </Select>
+        <Controller
+          name="roomName"
+          control={control}
+          render={({ field }) => (
+            <Select fullWidth size="small" {...field} error={!!errors.roomName}>
+              {rooms.map((r: any) => (
+                <MenuItem key={r.id} value={r.name}>
+                  {r.name}
+                </MenuItem>
+              ))}
+            </Select>
+          )}
+        />
 
         <Typography mt={1}>Capacity</Typography>
-        <TextField
-          fullWidth
-          size="small"
-          type="number"
-          value={capacity}
-          onChange={(e) => setCapacity(e.target.value)}
+        <Controller
+          name="capacity"
+          control={control}
+          render={({ field }) => (
+            <TextField
+              fullWidth
+              size="small"
+              type="number"
+              {...field}
+              error={!!errors.capacity}
+              helperText={errors.capacity?.message}
+            />
+          )}
         />
 
         <Typography mt={1}>Date</Typography>
-        <TextField
-          type="date"
-          fullWidth
-          size="small"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
+        <Controller
+          name="date"
+          control={control}
+          render={({ field }) => (
+            <TextField
+              type="date"
+              fullWidth
+              size="small"
+              {...field}
+              error={!!errors.date}
+            />
+          )}
         />
 
         <Typography mt={1}>Start Time</Typography>
-        <TextField
-          type="time"
-          fullWidth
-          size="small"
-          value={startTime}
-          onChange={(e) => setStartTime(e.target.value)}
+        <Controller
+          name="startTime"
+          control={control}
+          render={({ field }) => (
+            <TextField
+              type="time"
+              fullWidth
+              size="small"
+              {...field}
+              error={!!errors.startTime}
+            />
+          )}
         />
 
         <Typography mt={1}>End Time</Typography>
-        <TextField
-          type="time"
-          fullWidth
-          size="small"
-          value={endTime}
-          onChange={(e) => setEndTime(e.target.value)}
+        <Controller
+          name="endTime"
+          control={control}
+          render={({ field }) => (
+            <TextField
+              type="time"
+              fullWidth
+              size="small"
+              {...field}
+              error={!!errors.endTime}
+              helperText={errors.endTime?.message}
+            />
+          )}
         />
 
         <Typography mt={1}>Reason</Typography>
-        <Select
-          fullWidth
-          size="small"
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-        >
-          <MenuItem value="">Select Reason</MenuItem>
-          <MenuItem value="Meeting">Meeting</MenuItem>
-          <MenuItem value="Interview">Interview</MenuItem>
-          <MenuItem value="Training">Training</MenuItem>
-          <MenuItem value="Presentation">Presentation</MenuItem>
-          <MenuItem value="Workshop">Workshop</MenuItem>
-          <MenuItem value="Other">Other</MenuItem>
-        </Select>
+        <Controller
+          name="reason"
+          control={control}
+          render={({ field }) => (
+            <Select fullWidth size="small" {...field} error={!!errors.reason}>
+              <MenuItem value="">Select Reason</MenuItem>
+              <MenuItem value="Meeting">Meeting</MenuItem>
+              <MenuItem value="Interview">Interview</MenuItem>
+              <MenuItem value="Training">Training</MenuItem>
+              <MenuItem value="Presentation">Presentation</MenuItem>
+              <MenuItem value="Workshop">Workshop</MenuItem>
+              <MenuItem value="Other">Other</MenuItem>
+            </Select>
+          )}
+        />
 
       </DialogContent>
 
+      {/* ✅ ONLY FIXED HERE */}
       <DialogActions>
 
-        <Button onClick={handleSave}>
+        <Button
+          onClick={handleSubmit(onSubmit)}
+          sx={{ textTransform: "none" }}
+        >
           Save
         </Button>
 
-        <Button onClick={onClose}>
+        <Button
+          onClick={onClose}
+          sx={{ textTransform: "none" }}
+        >
           Close
         </Button>
 
