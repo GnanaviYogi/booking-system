@@ -217,7 +217,7 @@ export default function BookingForm({ open, selected, onClose }: any) {
 
       </DialogContent>
 
-      {/* ✅ BUTTONS SAME AS BEFORE */}
+      
       <DialogActions sx={{ p: 1 }}>
 
         <Button

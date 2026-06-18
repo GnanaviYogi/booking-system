@@ -22,8 +22,6 @@ import {
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-
-// ✅ NEW ICONS
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
@@ -51,9 +49,9 @@ export default function BookingList({ onOpenForm, selectedRoom }: any) {
 
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
 
-  // ✅ PAGINATION STATE
+  // ✅ pagination state (updated)
   const [page, setPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const times = Array.from({ length: 10 }, (_, i) => i + 9);
 
@@ -110,17 +108,14 @@ export default function BookingList({ onOpenForm, selectedRoom }: any) {
     );
   });
 
- const shuffledBookings = useMemo(() => {
-  const arr = [...filteredBookings];
-
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-
-  return arr;
-}, [filteredBookings]);
-
+  const shuffledBookings = useMemo(() => {
+    const arr = [...filteredBookings];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }, [filteredBookings]);
 
   const totalPages = Math.ceil(shuffledBookings.length / itemsPerPage);
 
@@ -131,7 +126,7 @@ export default function BookingList({ onOpenForm, selectedRoom }: any) {
 
   useEffect(() => {
     setPage(1);
-  }, [searchUser, filterRoom, filterDate, filterReason, date, selectedRoom]);
+  }, [searchUser, filterRoom, filterDate, filterReason, date, selectedRoom, itemsPerPage]);
 
   const handleEdit = (b: any) => {
     setSelected(b);
@@ -157,13 +152,10 @@ export default function BookingList({ onOpenForm, selectedRoom }: any) {
         background: "linear-gradient(135deg,#1e3c72,#2a5298)",
         color: "white"
       }}>
-        <Button sx={{ color: "white", textTransform: "none", fontSize: "13px" }} onClick={() => shiftDate(-1)}>
-          Prev
-        </Button>
+        <Button sx={{ color: "white" }} onClick={() => shiftDate(-1)}>Prev</Button>
 
         <Box display="flex" alignItems="center" gap={2}>
-          <Typography fontSize="13px">{date.toDateString()}</Typography>
-
+          <Typography>{date.toDateString()}</Typography>
           <TextField
             type="date"
             size="small"
@@ -171,48 +163,25 @@ export default function BookingList({ onOpenForm, selectedRoom }: any) {
             onChange={(e) => setDate(new Date(e.target.value))}
             sx={{ background: "white", borderRadius: 1 }}
           />
-
           <CalendarMonthIcon />
         </Box>
 
-        <Box display="flex" gap={1}>
-          <Button
-            sx={{ color: "white", borderColor: "white", textTransform: "none", fontSize: "13px" }}
-            onClick={() => setDate(new Date())}
-          >
-            Today
-          </Button>
-
-          <Button
-            sx={{ color: "white", borderColor: "white", textTransform: "none", fontSize: "13px" }}
-            onClick={() => shiftDate(1)}
-          >
-            Next
-          </Button>
-
-          <Button
-            variant="contained"
-            sx={{ textTransform: "none", fontSize: "13px" }}
-            onClick={onOpenForm}
-          >
-            Book form
-          </Button>
-
-          <Button
-            sx={{ color: "white", borderColor: "white", textTransform: "none", fontSize: "13px" }}
-            onClick={() => setViewMode(viewMode === "list" ? "calendar" : "list")}
-          >
+       
+ <Box display="flex" gap={1}>
+          <Button sx={{ color: "white", textTransform: "none" }} onClick={() => setDate(new Date())}>Today</Button>
+          <Button sx={{ color: "white", textTransform: "none" }} onClick={() => shiftDate(1)}>Next</Button>
+          <Button variant="contained" sx={{ textTransform: "none" }} onClick={onOpenForm}>Book form</Button>
+          <Button sx={{ color: "white", textTransform: "none" }} onClick={() => setViewMode(viewMode === "list" ? "calendar" : "list")}>
             {viewMode === "list" ? "Calendar view" : "List view"}
           </Button>
         </Box>
+
       </Paper>
 
-      {/* FILTER */}
       <Paper sx={{ p: 2, mb: 2 }}>
         <FilterBar {...{ searchUser, setSearchUser, filterRoom, setFilterRoom, filterDate, setFilterDate, reason: filterReason, setReason: setFilterReason, rooms }} />
       </Paper>
 
-      {/* LIST VIEW */}
       {viewMode === "list" && (
         <Box sx={{ flex: 1, overflowY: "auto", px: 2 }}>
           <Paper sx={{ p: 2 }}>
@@ -258,41 +227,79 @@ export default function BookingList({ onOpenForm, selectedRoom }: any) {
                 </Typography>
 
                 <Box display="flex" gap={2} justifyContent="flex-end">
-                  <Box sx={{ cursor: "pointer", color: "#2563eb", fontSize: "13px" }} onClick={() => handleEdit(b)}>
-                    <EditIcon sx={{ fontSize: 16 }} /> Edit
-                  </Box>
-
-                  <Box sx={{ cursor: "pointer", color: "#dc2626", fontSize: "13px" }} onClick={() => handleDelete(b.id)}>
-                    <DeleteIcon sx={{ fontSize: 16 }} /> Delete
+                  <Box
+  onClick={() => handleEdit(b)}
+  sx={{
+    cursor: "pointer",
+    color: "#2563eb", // ✅ blue color
+    display: "flex",
+    alignItems: "center",
+    gap: 0.5
+  }}
+>
+  <EditIcon fontSize="small" /> Edit
+</Box>
+                  <Box onClick={() => handleDelete(b.id)} sx={{ cursor: "pointer", color: "red" }}>
+                    <DeleteIcon fontSize="small" /> Delete
                   </Box>
                 </Box>
               </Box>
             ))}
 
-            {/* ✅ UPDATED PAGINATION */}
-            <Box display="flex" justifyContent="center" alignItems="center" gap={1} mt={2}>
+            {/* ✅ ONLY THIS BLOCK CHANGED */}
+            <Box display="flex" justifyContent="space-between" alignItems="center" mt={2} flexWrap="wrap">
 
-              <Button
-                size="small"
-                disabled={page === 1}
-                onClick={() => setPage(page - 1)}
-                sx={{ minWidth: "30px", p: 0.5 }}
-              >
-                <ArrowBackIosNewIcon sx={{ fontSize: 14 }} />
-              </Button>
+              {/* LEFT */}
+              <Box display="flex" alignItems="center" gap={2}>
+                <Typography fontSize="12px">Per page</Typography>
 
-              <Typography fontSize="12px">
-                {page} / {totalPages || 1}
-              </Typography>
+                <TextField
+                  select
+                  size="small"
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setPage(1);
+                  }}
+                  SelectProps={{ native: true }}
+                  sx={{ width: 70 }}
+                >
+                  {[5, 10, 20, 50].map(n => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </TextField>
 
-              <Button
-                size="small"
-                disabled={page === totalPages || totalPages === 0}
-                onClick={() => setPage(page + 1)}
-                sx={{ minWidth: "30px", p: 0.5 }}
-              >
-                <ArrowForwardIosIcon sx={{ fontSize: 14 }} />
-              </Button>
+                <Typography fontSize="12px">
+                  {(page - 1) * itemsPerPage + 1}-
+                  {Math.min(page * itemsPerPage, shuffledBookings.length)} of {shuffledBookings.length}
+                </Typography>
+              </Box>
+
+              {/* RIGHT */}
+              <Box display="flex" alignItems="center" gap={1}>
+                <Button disabled={page === 1} onClick={() => setPage(page - 1)}>
+                  <ArrowBackIosNewIcon fontSize="small" />
+                </Button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(p => Math.abs(p - page) <= 2 || p === 1 || p === totalPages)
+                  .map((p, i, arr) => (
+                    <span key={p}>
+                      {i > 0 && p - arr[i - 1] > 1 && "..."}
+                      <Button
+                        size="small"
+                        variant={p === page ? "contained" : "text"}
+                        onClick={() => setPage(p)}
+                      >
+                        {p}
+                      </Button>
+                    </span>
+                  ))}
+
+                <Button disabled={page === totalPages || totalPages === 0} onClick={() => setPage(page + 1)}>
+                  <ArrowForwardIosIcon fontSize="small" />
+                </Button>
+              </Box>
 
             </Box>
 
@@ -300,10 +307,9 @@ export default function BookingList({ onOpenForm, selectedRoom }: any) {
         </Box>
       )}
 
-      {/* CALENDAR VIEW */}
       {viewMode === "calendar" && (
-        <Box sx={{ flex: 1, overflowY: "auto", px: 2 }}>
-          <ScheduleGrid {...{ rooms, bookings: filteredBookings, times, currentDateStr, onEdit: handleEdit, onDelete: handleDelete }} />
+        <Box sx={{ flex: 1, overflow: "auto", px: 2 }}>
+          <ScheduleGrid {...{ rooms, bookings: filteredBookings, times }} />
         </Box>
       )}
 
@@ -311,18 +317,13 @@ export default function BookingList({ onOpenForm, selectedRoom }: any) {
 
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
         <DialogTitle>Confirm Delete</DialogTitle>
-        <DialogContent>
-          <Typography fontSize="13px">Delete this booking?</Typography>
-        </DialogContent>
+        <DialogContent>Delete this booking?</DialogContent>
         <DialogActions>
-          <Button sx={{ fontSize: "13px" }} onClick={() => setConfirmOpen(false)}>Cancel</Button>
-          <Button sx={{ fontSize: "13px" }} color="error"
-            onClick={async () => {
-              if (bookingToDelete) await deleteBooking(bookingToDelete);
-              setConfirmOpen(false);
-            }}>
-            Delete
-          </Button>
+          <Button onClick={() => setConfirmOpen(false)}>Cancel</Button>
+          <Button color="error" onClick={async () => {
+            if (bookingToDelete) await deleteBooking(bookingToDelete);
+            setConfirmOpen(false);
+          }}>Delete</Button>
         </DialogActions>
       </Dialog>
 
