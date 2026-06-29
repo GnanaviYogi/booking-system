@@ -1,9 +1,13 @@
 from fastapi_jwt_auth import AuthJWT
 from pydantic import BaseModel
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 
 class Settings(BaseModel):
-    authjwt_secret_key: str = "super-secret-key"
+    authjwt_secret_key: str = os.getenv("JWT_SECRET_KEY")
 
 
 @AuthJWT.load_config

@@ -15,6 +15,7 @@ export default function Home() {
 
   const router = useRouter();
 
+  // ✅ CHECK AUTH
   useEffect(() => {
     const token = localStorage.getItem("token");
 
@@ -23,10 +24,15 @@ export default function Home() {
     }
   }, [router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    router.push("/login");
-  };
+  // ✅ LOGOUT WITH MESSAGE
+ const handleLogout = () => {
+  localStorage.removeItem("token");
+
+  // ✅ THIS IS THE KEY FIX
+  window.location.href = "/login?logout=1";
+};
+
+
 
   return (
     <div
