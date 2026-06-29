@@ -18,10 +18,10 @@ import {
   useCreateBookingMutation,
   useGetRoomsQuery,
   useGetBookingsQuery,
+  useGetAvailabilityQuery,
 } from "@/services/api";
 import { useSnackbar } from "notistack";
-
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -75,6 +75,40 @@ export default function BookingForm({ open, selected, onClose }: any) {
     },
   });
 
+  
+ // ✅ Watch required fields
+  const startTime = useWatch({ control, name: "startTime" });
+  const endTime = useWatch({ control, name: "endTime" });
+  const capacity = useWatch({ control, name: "capacity" });
+
+  
+  // ✅ Availability API call
+  const { data: availabilityData } = useGetAvailabilityQuery(
+    {
+      start_time: startTime
+        ? new Date(`1970-01-01T${startTime}:00`).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          })
+        : "",
+      
+end_time: endTime
+        ? new Date(`1970-01-01T${endTime}:00`).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          })
+        : "",
+      required_capacity: Number(capacity),
+    },
+    
+  {
+      skip: !startTime || !endTime || !capacity,
+    }
+  );
+
+
   useEffect(() => {
     if (selected?.prefill) {
       setValue("roomName", selected.room_name || "");
@@ -120,6 +154,17 @@ export default function BookingForm({ open, selected, onClose }: any) {
       enqueueSnackbar("Booking Failed", { variant: "error" });
     }
   };
+
+  
+// ✅ Use available rooms OR fallback
+  const availableRooms =
+    availabilityData?.available_rooms?.map((r: any) => r.room_name) || [];
+
+  const roomsToShow =
+    availableRooms.length > 0
+      ? rooms.filter((r: any) => availableRooms.includes(r.name))
+      : rooms;
+
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth>

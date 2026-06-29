@@ -4,8 +4,18 @@ export const api = createApi({
   reducerPath: "api",
 
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://127.0.0.1:8000/",
-  }),
+  baseUrl: "http://127.0.0.1:8000/",
+  prepareHeaders: (headers) => {
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      headers.set("authorization", `Bearer ${token}`);
+    }
+
+    return headers;
+  },
+}),
+
 
   tagTypes: ["Bookings"],
 
@@ -23,6 +33,20 @@ export const api = createApi({
     getRooms: builder.query({
       query: () => "rooms/",
     }),
+
+    
+// ✅ ✅ GET AVAILABILITY (NEW)
+    getAvailability: builder.query({
+      query: ({ start_time, end_time, required_capacity }) => ({
+        url: "rooms/availability",
+        params: {
+          start_time,
+          end_time,
+          required_capacity,
+        },
+      }),
+    }),
+
 
     // ✅ CREATE BOOKING
     createBooking: builder.mutation({
@@ -65,6 +89,7 @@ export const api = createApi({
 export const {
   useGetBookingsQuery,
   useGetRoomsQuery,
+  useGetAvailabilityQuery,
   useCreateBookingMutation,
   useUpdateBookingMutation,   
   useDeleteBookingMutation,

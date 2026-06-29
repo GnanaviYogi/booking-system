@@ -1,21 +1,25 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-#  DB setup
+# ✅ FIRST → import Base & DB
 from app.db.base import Base
 from app.db.database import engine, SessionLocal
 
-# Load models (IMPORTANT)
+# ✅ SECOND → IMPORT ALL MODELS (VERY IMPORTANT)
+from app.models.user import User
 from app.models.booking import Booking
 from app.models.room import Room
 
-# APIs
 from app.api import room as room_api
 from app.api import booking as booking_api
 
 from app.api.user import router as user_router
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from app.core import config
 
+# ✅ FOURTH → CREATE TABLES
+Base.metadata.create_all(bind=engine)
+
+# ✅ FIFTH → create app
 app = FastAPI()
 
 
@@ -26,13 +30,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-app.include_router(user_router)
-
-
-# Create tables
-Base.metadata.create_all(bind=engine)
 
 
 # Seed rooms
@@ -64,8 +61,21 @@ def startup_event():
 
 @app.get("/")
 def root():
-    return {"message": "Meeting Room Booking API running 🚀"}
+    return {"message": "Meeting Room Booking API running "}
 
 
 app.include_router(room_api.router)
 app.include_router(booking_api.router)
+app.include_router(user_router)
+
+
+from app.core.redis_client import redis_client  # import this
+
+
+@app.get("/test-redis")
+def test_redis():
+    try:
+        redis_client.set("ping", "pong")
+        return {"redis": redis_client.get("ping")}
+    except Exception as e:
+        return {"error": str(e)}

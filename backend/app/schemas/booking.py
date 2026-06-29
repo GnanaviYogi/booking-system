@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, validator, Field
+
 from typing import Optional
 from datetime import time, date as Datetype
+from typing import List
 
 
 # ============================
@@ -50,3 +52,8 @@ class BookingUpdate(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class PaginatedBookings(BaseModel):
+    data: List[BookingResponse]
+    total: int

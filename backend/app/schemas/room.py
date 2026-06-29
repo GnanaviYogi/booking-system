@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, validator
 from typing import Optional
 
 
@@ -21,7 +21,7 @@ class RoomCreate(BaseModel):
     name: str
     capacity: int
 
-    @field_validator("capacity")
+    @validator("capacity")
     def validate_capacity(cls, value):
         if value <= 0 or value >= 100:
             raise ValueError("Capacity must be between 1 and 99")

@@ -4,6 +4,9 @@ from app.models.booking import Booking
 from app.models.room import Room
 from app.models.user import User
 
+import json
+from app.core.redis_client import redis_client
+
 
 # ============================
 # ✅ CREATE BOOKING
@@ -72,6 +75,15 @@ def create_booking_service(db: Session, data):
 
     db.add(booking)
     db.commit()
+    # ✅ Clear all booking cache (important)
+    # ✅ Clear bookings cache
+    for key in redis_client.scan_iter("bookings:*"):
+        redis_client.delete(key)
+
+    # ✅ Clear availability cache
+    for key in redis_client.scan_iter("availability:*"):
+        redis_client.delete(key)
+
     db.refresh(booking)
 
     return {
@@ -95,10 +107,24 @@ def get_bookings_service(
     room_name: str = None,
     date: str = None,
     reason: str = None,
+    limit: int = 10,
+    offset: int = 0,
 ):
+
+    # ✅ Create unique cache key
+    cache_key = f"bookings:{user_name}:{room_name}:{date}:{reason}:{limit}:{offset}"
+
+    # ✅ Check Redis first
+    cached = redis_client.get(cache_key)
+    if cached:
+        print("✅ Returning from Redis Cache")
+        return json.loads(cached)
+
+    print("❌ Fetching from DB")
 
     query = db.query(Booking)
 
+    # ✅ Apply filters
     if user_name:
         query = query.filter(Booking.user_name.ilike(f"%{user_name.strip()}%"))
 
@@ -111,14 +137,22 @@ def get_bookings_service(
         if room:
             query = query.filter(Booking.room_id == room.id)
         else:
-            return []
+            return {"data": [], "total": 0}  # ✅ FIXED
 
     if date:
-        query = query.filter(Booking.date == date)
+        from datetime import datetime
 
-    bookings = query.all()
+        date_obj = datetime.strptime(date, "%Y-%m-%d").date()
+        query = query.filter(Booking.date == date_obj)
 
-    return [
+    # ✅ ✅ IMPORTANT: total BEFORE pagination
+    total = query.count()
+
+    # ✅ Apply pagination
+    bookings = query.offset(offset).limit(limit).all()
+
+    # ✅ Format response
+    result = [
         {
             "id": b.id,
             "user_name": b.user_name,
@@ -131,6 +165,14 @@ def get_bookings_service(
         }
         for b in bookings
     ]
+
+    # ✅ Final response
+    response = {"data": result, "total": total}
+
+    # ✅ Store in Redis
+    redis_client.setex(cache_key, 60, json.dumps(response))
+
+    return response
 
 
 # ============================
@@ -148,6 +190,14 @@ def delete_booking_service(db: Session, booking_id: int):
 
     db.delete(booking)
     db.commit()
+
+    # ✅ Clear bookings cache
+    for key in redis_client.scan_iter("bookings:*"):
+        redis_client.delete(key)
+
+    # ✅ Clear availability cache
+    for key in redis_client.scan_iter("availability:*"):
+        redis_client.delete(key)
 
     return {"message": "Booking deleted successfully"}
 
@@ -222,6 +272,15 @@ def update_booking_service(db: Session, booking_id: int, data):
         )
 
     db.commit()
+
+    # ✅ Clear bookings cache
+    for key in redis_client.scan_iter("bookings:*"):
+        redis_client.delete(key)
+
+    # ✅ Clear availability cache
+    for key in redis_client.scan_iter("availability:*"):
+        redis_client.delete(key)
+
     db.refresh(booking)
 
     return {

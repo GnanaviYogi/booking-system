@@ -35,13 +35,45 @@ export default function BookingList({ onOpenForm, selectedRoom }: any) {
   const [filterRoom, setFilterRoom] = useState("");
   const [filterDate, setFilterDate] = useState("");
   const [filterReason, setFilterReason] = useState("");
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+ 
+ 
 
-  const { data: bookings = [] } = useGetBookingsQuery({});
+  
+  const [date, setDate] = useState<Date>(new Date());
+
+  const getLocalDate = (d: Date) =>
+    new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 10);
+
+  const currentDateStr = getLocalDate(date);
+
+  // ✅ API CALL MUST COME AFTER THIS
+  const { data } = useGetBookingsQuery({
+    ...(searchUser && { user_name: searchUser }),
+    ...(selectedRoom && { room_name: selectedRoom }),
+    ...(filterReason && { reason: filterReason }),
+    date: currentDateStr,
+    limit: itemsPerPage,
+    offset: (page - 1) * itemsPerPage,
+  });
+
+
+  // ✅ FIX: extract correctly
+  const bookings = data?.data || [];
+  const total = data?.total || 0;
+
+  const shuffledBookings = [...bookings].sort(() => Math.random() - 0.5);
+  
+  const paginatedBookings = shuffledBookings;
+
   const { data: rooms = [] } = useGetRoomsQuery(undefined);
   const [deleteBooking] = useDeleteBookingMutation();
 
   const [selected, setSelected] = useState<any>(null);
-  const [date, setDate] = useState<Date>(new Date());
+  
 
   const [showModal, setShowModal] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -50,8 +82,7 @@ export default function BookingList({ onOpenForm, selectedRoom }: any) {
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
 
   // ✅ pagination state (updated)
-  const [page, setPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  
 
   const times = Array.from({ length: 10 }, (_, i) => i + 9);
 
@@ -71,12 +102,9 @@ export default function BookingList({ onOpenForm, selectedRoom }: any) {
     Saraswati: "#9333ea",
   };
 
-  const getLocalDate = (d: Date) =>
-    new Date(d.getTime() - d.getTimezoneOffset() * 60000)
-      .toISOString()
-      .slice(0, 10);
+ 
 
-  const currentDateStr = getLocalDate(date);
+
 
   const shiftDate = (n: number) => {
     const newDate = new Date(date);
@@ -91,38 +119,14 @@ export default function BookingList({ onOpenForm, selectedRoom }: any) {
     return `${hour}:${m.toString().padStart(2, "0")} ${ampm}`;
   };
 
-  const filteredBookings = bookings.filter((b: any) => {
+  const filteredBookings = bookings;
 
-    const roomMatch =
-      !selectedRoom ||
-      b.room_id === selectedRoom ||
-      b.room_name === selectedRoom;
+  
 
-    return (
-      b.date?.slice(0, 10) === currentDateStr &&
-      (!searchUser || b.user_name?.toLowerCase().includes(searchUser.toLowerCase())) &&
-      (!filterRoom || b.room_id === filterRoom || b.room_name === filterRoom) &&
-      (!filterReason || b.reason === filterReason) &&
-      (!filterDate || b.date?.slice(0, 10) === filterDate) &&
-      roomMatch
-    );
-  });
 
-  const shuffledBookings = useMemo(() => {
-    const arr = [...filteredBookings];
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  }, [filteredBookings]);
+  const totalPages = page + 1;
 
-  const totalPages = Math.ceil(shuffledBookings.length / itemsPerPage);
-
-  const paginatedBookings = shuffledBookings.slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage
-  );
+   
 
   useEffect(() => {
     setPage(1);

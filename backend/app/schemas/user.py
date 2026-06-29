@@ -1,20 +1,32 @@
 from pydantic import BaseModel, EmailStr
+from typing import Optional
 
 
+# ✅ REGISTER SCHEMA
 class UserCreate(BaseModel):
-    name: str
+    username: str
     email: EmailStr
+    password: str
 
 
+# ✅ LOGIN SCHEMA
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+# ✅ UPDATE SCHEMA
 class UserUpdate(BaseModel):
-    name: str | None = None
-    email: EmailStr | None = None
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
 
 
+# ✅ RESPONSE SCHEMA
 class UserResponse(BaseModel):
     id: int
-    name: str
-    email: str
+    username: str
+    email: EmailStr
 
     class Config:
-        from_attributes = True
+        from_attributes = True  # ✅ REQUIRED for SQLAlchemy
