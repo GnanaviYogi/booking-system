@@ -30,3 +30,4 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True  # ✅ REQUIRED for SQLAlchemy
+        orm_mode = True

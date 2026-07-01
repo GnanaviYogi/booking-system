@@ -11,6 +11,11 @@ import {
 import { useRouter } from "next/navigation";
 import StatusSnackbar from "@/components/StatusSnackbar";
 
+import {
+  useLoginMutation,
+  useRegisterMutation
+} from "@/services/api";
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -19,14 +24,22 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
 
+  // ✅ VALIDATION STATES
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
   const [openSnack, setOpenSnack] = useState(false);
   const [message, setMessage] = useState("");
   const [severity, setSeverity] =
     useState<"success" | "error">("success");
 
-  // ✅ LOGOUT MESSAGE
+  const [loginUser] = useLoginMutation();
+  const [registerUser] = useRegisterMutation();
+
+  // ✅ Logout message
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+
     if (params.get("logout") === "1") {
       setMessage("Logged out successfully ✅");
       setSeverity("success");
@@ -34,64 +47,60 @@ export default function LoginPage() {
     }
   }, []);
 
-  // ✅ VALIDATION
-  const isEmailValid = /\S+@\S+\.\S+/.test(email);
-  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  // ✅ VALIDATION FUNCTION
+  const validateForm = () => {
+    let valid = true;
 
-  // ✅ LOGIN API
-  const handleLogin = async () => {
-    if (!isEmailValid || !hasSpecialChar) {
-      setMessage("Invalid email or password");
-      setSeverity("error");
-      setOpenSnack(true);
-      return;
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setEmailError("Enter a valid email");
+      valid = false;
+    } else {
+      setEmailError("");
     }
 
-    const res = await fetch("http://127.0.0.1:8000/users/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email, password })
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
-      localStorage.setItem("token", data.access_token);
-
-      setMessage("Login successful ✅");
-      setSeverity("success");
-      setOpenSnack(true);
-
-      setTimeout(() => {
-        router.push("/");
-      }, 1200);
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      setPasswordError("Must include a special character");
+      valid = false;
     } else {
-      setMessage(data.detail || "Login failed");
+      setPasswordError("");
+    }
+
+    return valid;
+  };
+
+  // ✅ LOGIN
+  const handleLogin = async () => {
+    if (!validateForm()) return;
+
+    try {
+      const res = await loginUser({ email, password }).unwrap();
+
+      localStorage.setItem("token", res.access_token);
+      localStorage.setItem("user", email);
+
+      router.push("/?login=1");
+
+    } catch (err: any) {
+      setMessage(err?.data?.detail || "Login failed ❌");
       setSeverity("error");
       setOpenSnack(true);
     }
   };
 
-  // ✅ REGISTER API
+  // ✅ REGISTER
   const handleRegister = async () => {
-    if (!isEmailValid || !hasSpecialChar || username.trim() === "") {
-      setMessage("Fill all fields correctly");
+    if (!validateForm()) return;
+
+    if (!username) {
+      setMessage("Username required ❌");
       setSeverity("error");
       setOpenSnack(true);
       return;
     }
 
-    const res = await fetch("http://127.0.0.1:8000/users/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ username, email, password })
-    });
+    try {
+      await registerUser({ username, email, password }).unwrap();
 
-    if (res.ok) {
       setMessage("Registered successfully ✅");
       setSeverity("success");
       setOpenSnack(true);
@@ -100,8 +109,9 @@ export default function LoginPage() {
       setUsername("");
       setEmail("");
       setPassword("");
-    } else {
-      setMessage("Registration failed");
+
+    } catch (err: any) {
+      setMessage(err?.data?.detail || "Registration failed ❌");
       setSeverity("error");
       setOpenSnack(true);
     }
@@ -115,104 +125,121 @@ export default function LoginPage() {
         justifyContent: "center",
         alignItems: "center",
         background:
-          "linear-gradient(135deg, #dbeafe, #e0f2fe, #eef2ff)"
+          "linear-gradient(135deg, #6366f1, #3b82f6, #06b6d4)"
       }}
     >
-      {/* ✅ CARD */}
       <Paper
-        elevation={8}
+        elevation={10}
         sx={{
-          padding: "30px",
+          padding: "40px",
           width: 360,
-          borderRadius: "16px",
+          borderRadius: "18px",
           display: "flex",
           flexDirection: "column",
-          gap: 2
+          gap: 2,
+          background: "rgba(255,255,255,0.95)"
         }}
       >
-        <Typography variant="h5" textAlign="center" fontWeight="600">
-          {isRegister ? "Create Account" : "Welcome Back"}
+        <Typography
+          variant="h5"
+          textAlign="center"
+          fontWeight="700"
+          color="#1d4ed8"
+        >
+          {isRegister ? "Create Account ✨" : "Welcome Back"}
         </Typography>
 
-        {/* ✅ USERNAME */}
+        {/* USERNAME */}
         {isRegister && (
           <TextField
             label="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            error={username !== "" && username.length < 3}
-            helperText={
-              username !== "" && username.length < 3
-                ? "Min 3 characters"
-                : "Example: abc"
-            }
+            fullWidth
           />
         )}
 
-        {/* ✅ EMAIL */}
+        {/* EMAIL */}
         <TextField
           label="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          error={email !== "" && !isEmailValid}
-          helperText={
-            email !== "" && !isEmailValid
-              ? "Invalid email"
-              : "Example: example@gmail.com"
-          }
+          fullWidth
+          error={!!emailError}
+          helperText={emailError}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderColor: emailError
+                  ? "red"
+                  : email
+                  ? "green"
+                  : "#ccc",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: emailError ? "red" : "green",
+              },
+            },
+          }}
         />
 
-        {/* ✅ PASSWORD */}
+        {/* PASSWORD */}
         <TextField
           label="Password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          error={password !== "" && !hasSpecialChar}
-          helperText={
-            password !== "" && !hasSpecialChar
-              ? "At least 1 special character"
-              : "Example: password@123"
-          }
+          fullWidth
+          error={!!passwordError}
+          helperText={passwordError}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderColor: passwordError
+                  ? "red"
+                  : password
+                  ? "green"
+                  : "#ccc",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: passwordError ? "red" : "green",
+              },
+            },
+          }}
         />
 
-        {/* ✅ BUTTON */}
+        {/* BUTTON */}
         <Button
           variant="contained"
           onClick={isRegister ? handleRegister : handleLogin}
-          disabled={
-            !email ||
-            !password ||
-            (isRegister && !username) ||
-            !isEmailValid ||
-            !hasSpecialChar
-          }
           sx={{
+            mt: 1,
             padding: "10px",
-            borderRadius: "8px",
-            fontWeight: "600"
+            borderRadius: "10px",
+            fontWeight: "600",
           }}
         >
           {isRegister ? "Register" : "Login"}
         </Button>
 
-        {/* ✅ SWITCH */}
+        {/* SWITCH */}
         <Typography
           textAlign="center"
           sx={{
             cursor: "pointer",
+            fontSize: "14px",
             color: "#2563eb",
-            fontSize: "14px"
+            mt: 1
           }}
           onClick={() => setIsRegister(!isRegister)}
         >
           {isRegister
             ? "Already have an account? Login"
-            : "New user? Create account"}
+            : "New here? Create an account"}
         </Typography>
       </Paper>
 
-      {/* ✅ SNACKBAR */}
+      {/* SNACKBAR */}
       <StatusSnackbar
         open={openSnack}
         message={message}

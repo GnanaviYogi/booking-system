@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.db.base import Base
 from app.db.database import engine, SessionLocal
 
-# ✅ SECOND → IMPORT ALL MODELS (VERY IMPORTANT)
+# ✅ SECOND → IMPORT ALL MODELS
 from app.models.user import User
 from app.models.booking import Booking
 from app.models.room import Room
@@ -14,25 +14,44 @@ from app.api import room as room_api
 from app.api import booking as booking_api
 
 from app.api.user import router as user_router
-from app.core import config
+from app.api import auth
 
-# ✅ FOURTH → CREATE TABLES
+# ✅ ✅ ✅ ADD THIS (VERY IMPORTANT)
+from fastapi_jwt_auth import AuthJWT
+from pydantic import BaseModel
+
+
+# ✅ ✅ ✅ JWT CONFIG (THIS FIXES AUTHORIZE BUTTON)
+class Settings(BaseModel):
+    authjwt_secret_key: str = "secret123"
+
+
+@AuthJWT.load_config
+def get_config():
+    return Settings()
+
+
+# ✅ CREATE TABLES
 Base.metadata.create_all(bind=engine)
 
-# ✅ FIFTH → create app
+# ✅ CREATE APP
 app = FastAPI()
 
 
+# ✅ CORS
+
+from fastapi.middleware.cors import CORSMiddleware
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000"],  # ✅ frontend
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# Seed rooms
+# ✅ Seed rooms
 def seed_rooms():
     db = SessionLocal()
 
@@ -42,6 +61,13 @@ def seed_rooms():
         {"name": "Kaveri", "capacity": 15},
         {"name": "Narmada", "capacity": 20},
         {"name": "Saraswathi", "capacity": 25},
+        {"name": "Brahmaputra", "capacity": 30},
+        {"name": "Godavari", "capacity": 35},
+        {"name": "Krishna", "capacity": 80},
+        {"name": "Mahanadi", "capacity": 40},
+        {"name": "Sabarmati", "capacity": 50},
+        {"name": "Tapti", "capacity": 60},
+        {"name": "Indus", "capacity": 70},
     ]
 
     for r in rooms:
@@ -64,12 +90,15 @@ def root():
     return {"message": "Meeting Room Booking API running "}
 
 
+# ✅ ROUTERS
 app.include_router(room_api.router)
 app.include_router(booking_api.router)
 app.include_router(user_router)
+app.include_router(auth.router)
 
 
-from app.core.redis_client import redis_client  # import this
+# ✅ Redis test
+from app.core.redis_client import redis_client
 
 
 @app.get("/test-redis")
