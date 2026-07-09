@@ -3,22 +3,31 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.db.database import SessionLocal
 from app.models.user import User
-from app.core.security import hash_password, verify_password
+from app.core.security import (
+    hash_password,
+    verify_password,
+)
 
 
 def register_user(data):
     db = SessionLocal()
 
     try:
-        # ✅ check existing user
-        existing_user = db.query(User).filter(User.email == data.email).first()
-        if existing_user:
-            raise HTTPException(status_code=400, detail="User already exists")
+        existing_email = db.query(User).filter(User.email == data.email).first()
 
-        # ✅ store in DB ✅ (THIS IS YOUR REQUIREMENT)
+        if existing_email:
+            raise HTTPException(status_code=400, detail="Email already registered")
+
+        existing_username = (
+            db.query(User).filter(User.username == data.username).first()
+        )
+
+        if existing_username:
+            raise HTTPException(status_code=400, detail="Username already exists")
+
         new_user = User(
-            username=data.username,
-            email=data.email,
+            username=data.username.strip(),
+            email=data.email.strip().lower(),
             password=hash_password(data.password),
         )
 
@@ -28,8 +37,12 @@ def register_user(data):
 
         return new_user
 
+    except HTTPException:
+        raise
+
     except SQLAlchemyError:
         db.rollback()
+
         raise HTTPException(status_code=500, detail="Database error")
 
     finally:
@@ -40,13 +53,18 @@ def login_user(data):
     db = SessionLocal()
 
     try:
-        # ✅ fetch from DB ✅
         user = db.query(User).filter(User.email == data.email).first()
 
-        if not user or not verify_password(data.password, user.password):
-            raise HTTPException(status_code=401, detail="Invalid credentials")
+        if not user:
+            raise HTTPException(status_code=404, detail="Account not found")
+
+        if not verify_password(data.password, user.password):
+            raise HTTPException(status_code=401, detail="Invalid password")
 
         return user
+
+    except HTTPException:
+        raise
 
     except SQLAlchemyError:
         raise HTTPException(status_code=500, detail="Database error")

@@ -1,11 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# ✅ FIRST → import Base & DB
 from app.db.base import Base
 from app.db.database import engine, SessionLocal
 
-# ✅ SECOND → IMPORT ALL MODELS
 from app.models.user import User
 from app.models.booking import Booking
 from app.models.room import Room
@@ -16,12 +14,13 @@ from app.api import booking as booking_api
 from app.api.user import router as user_router
 from app.api import auth
 
-# ✅ ✅ ✅ ADD THIS (VERY IMPORTANT)
 from fastapi_jwt_auth import AuthJWT
 from pydantic import BaseModel
 
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
-# ✅ ✅ ✅ JWT CONFIG (THIS FIXES AUTHORIZE BUTTON)
+
 class Settings(BaseModel):
     authjwt_secret_key: str = "secret123"
 
@@ -31,7 +30,6 @@ def get_config():
     return Settings()
 
 
-# ✅ CREATE TABLES
 Base.metadata.create_all(bind=engine)
 
 # ✅ CREATE APP
@@ -44,7 +42,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # ✅ frontend
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -108,3 +106,10 @@ def test_redis():
         return {"redis": redis_client.get("ping")}
     except Exception as e:
         return {"error": str(e)}
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    error = exc.errors()[0]
+
+    return JSONResponse(status_code=422, content={"detail": error["msg"]})

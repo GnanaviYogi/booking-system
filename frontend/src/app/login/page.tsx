@@ -6,7 +6,9 @@ import {
   Button,
   Box,
   Typography,
-  Paper
+  Paper,
+  Checkbox,
+  FormControlLabel
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import StatusSnackbar from "@/components/StatusSnackbar";
@@ -23,6 +25,20 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
+
+  const [confirmPassword, setConfirmPassword] =
+    useState("");
+
+  const [acceptPolicy, setAcceptPolicy] =
+    useState(false);
+
+  const [usernameError, setUsernameError] =
+    useState("");
+
+  const [confirmPasswordError,
+    setConfirmPasswordError] = useState("");
+
+
 
   // ✅ VALIDATION STATES
   const [emailError, setEmailError] = useState("");
@@ -48,21 +64,66 @@ export default function LoginPage() {
   }, []);
 
   // ✅ VALIDATION FUNCTION
-  const validateForm = () => {
+    const validateForm = () => {
     let valid = true;
 
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      setEmailError("Enter a valid email");
+    setUsernameError("");
+    setEmailError("");
+    setPasswordError("");
+    setConfirmPasswordError("");
+
+    if (
+      isRegister &&
+      username.trim().length < 3
+    ) {
+      setUsernameError(
+        "Username must be at least 3 characters"
+      );
       valid = false;
-    } else {
-      setEmailError("");
     }
 
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      setPasswordError("Must include a special character");
+    const emailRegex =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) {
+      setEmailError(
+        "Enter a valid email"
+      );
       valid = false;
-    } else {
-      setPasswordError("");
+    }
+
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+
+    if (
+      !passwordRegex.test(password)
+    ) {
+      setPasswordError(
+        "Min 8 chars, uppercase, lowercase, number & special character required"
+      );
+      valid = false;
+    }
+
+    if (
+      isRegister &&
+      password !== confirmPassword
+    ) {
+      setConfirmPasswordError(
+        "Passwords do not match"
+      );
+      valid = false;
+    }
+
+    if (
+      isRegister &&
+      !acceptPolicy
+    ) {
+      setMessage(
+        "Accept Privacy Policy"
+      );
+      setSeverity("error");
+      setOpenSnack(true);
+      valid = false;
     }
 
     return valid;
@@ -74,9 +135,21 @@ export default function LoginPage() {
 
     try {
       const res = await loginUser({ email, password }).unwrap();
+       
+          localStorage.setItem(
+      "access_token",
+      res.access_token
+    );
 
-      localStorage.setItem("token", res.access_token);
-      localStorage.setItem("user", email);
+    localStorage.setItem(
+      "refresh_token",
+      res.refresh_token
+    );
+
+    localStorage.setItem(
+      "user",
+      res.username
+    );
 
       router.push("/?login=1");
 
@@ -125,39 +198,62 @@ export default function LoginPage() {
         justifyContent: "center",
         alignItems: "center",
         background:
-          "linear-gradient(135deg, #6366f1, #3b82f6, #06b6d4)"
+          "linear-gradient(135deg,#edf4ff,#dbeafe,#e0e7ff)",
+        p: 3,
       }}
+
     >
+      
+      
       <Paper
-        elevation={10}
+        elevation={0}
         sx={{
-          padding: "40px",
-          width: 360,
-          borderRadius: "18px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 2,
-          background: "rgba(255,255,255,0.95)"
+          width: 450,
+          p: 5,
+          borderRadius: "32px",
+          background: "rgba(255,255,255,0.75)",
+          backdropFilter: "blur(16px)",
+          border: "1px solid rgba(255,255,255,0.5)",
+          boxShadow:
+            "0 20px 50px rgba(37,99,235,0.15)",
         }}
       >
+
         <Typography
-          variant="h5"
+          variant="h4"
           textAlign="center"
-          fontWeight="700"
-          color="#1d4ed8"
+          fontWeight={700}
+          color="#1E40AF"
+          mb={1}
         >
-          {isRegister ? "Create Account ✨" : "Welcome Back"}
+          {isRegister
+            ? "Create Account ✨"
+            : "Welcome Back"}
         </Typography>
+
 
         {/* USERNAME */}
         {isRegister && (
           <TextField
             label="Username"
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(e) => setUsername(e.target.value)
+            }
             fullWidth
+            error={!!usernameError}
+            helperText={usernameError}
           />
         )}
+        <Typography
+            textAlign="center"
+            color="#64748B"
+            mb={3}
+          >
+            {isRegister
+              ? "Create your account to continue"
+              : "Sign in to your account"}
+          </Typography>
+
 
         {/* EMAIL */}
         <TextField
@@ -208,15 +304,85 @@ export default function LoginPage() {
           }}
         />
 
+        {isRegister && (
+            <TextField
+              label="Confirm Password"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) =>
+                setConfirmPassword(
+                  e.target.value
+                )
+              }
+              fullWidth
+              error={!!confirmPasswordError}
+              helperText={confirmPasswordError}
+            />
+          )}
+
+          {isRegister && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={acceptPolicy}
+                  onChange={(e) =>
+                    setAcceptPolicy(
+                      e.target.checked
+                    )
+                  }
+                />
+              }
+              label="I agree to Terms & Privacy Policy"
+            />
+          )}
+
+          {isRegister && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+            >
+              Password must contain:
+              <br />
+              ✓ Minimum 8 characters
+              <br />
+              ✓ One uppercase letter
+              <br />
+              ✓ One lowercase letter
+              <br />
+              ✓ One number
+              <br />
+              ✓ One special character
+            </Typography>
+          )}                    
+
+
+
+
+
+
         {/* BUTTON */}
         <Button
           variant="contained"
           onClick={isRegister ? handleRegister : handleLogin}
           sx={{
-            mt: 1,
-            padding: "10px",
-            borderRadius: "10px",
-            fontWeight: "600",
+            mt: 2,
+            height: 54,
+            borderRadius: "16px",
+            fontWeight: 700,
+            fontSize: "16px",
+            textTransform: "none",
+            background:
+              "linear-gradient(135deg,#3B82F6,#6366F1)",
+            boxShadow:
+              "0 10px 30px rgba(59,130,246,0.3)",
+
+            "&:hover": {
+              background:
+                "linear-gradient(135deg,#2563EB,#4F46E5)",
+              transform: "translateY(-2px)",
+            },
+
+            transition: "all 0.3s ease"
           }}
         >
           {isRegister ? "Register" : "Login"}

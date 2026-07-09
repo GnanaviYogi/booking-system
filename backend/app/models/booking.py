@@ -1,6 +1,5 @@
-from app.models.user import User
 from sqlalchemy import Column, Integer, String, ForeignKey, Time, Date
-
+from sqlalchemy.orm import relationship
 from app.db.base import Base
 
 
@@ -19,4 +18,6 @@ class Booking(Base):
     start_time = Column(Time)
     end_time = Column(Time)
 
-    reason = Column(String, nullable=True)
+    reason = Column(String)
+
+    room = relationship("Room", back_populates="bookings")

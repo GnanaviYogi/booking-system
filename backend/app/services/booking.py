@@ -3,6 +3,7 @@ from fastapi import HTTPException, status
 from app.models.booking import Booking
 from app.models.room import Room
 from app.models.user import User
+from sqlalchemy.sql import func
 
 import json
 from app.core.redis_client import redis_client
@@ -17,33 +18,19 @@ def create_booking_service(db: Session, data):
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
 
-    user = db.query(User).filter(User.name.ilike(data.user_name.strip())).first()
+    user = db.query(User).filter(User.username.ilike(data.user_name.strip())).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # ✅ CAPACITY CHECK
     if room.capacity < data.required_capacity:
-        suitable_rooms = (
-            db.query(Room).filter(Room.capacity >= data.required_capacity).all()
-        )
-
-        suggestions = [
-            {"room_name": r.name, "capacity": r.capacity} for r in suitable_rooms
-        ]
-
         raise HTTPException(
             status_code=400,
-            detail={
-                "message": "Selected room does not meet capacity requirement",
-                "suggested_rooms": suggestions,
-            },
+            detail="Selected room does not meet capacity",
         )
 
-    # ✅ TIME VALIDATION
     if data.end_time <= data.start_time:
-        raise HTTPException(status_code=400, detail="End time must be after start time")
+        raise HTTPException(status_code=400, detail="Invalid time range")
 
-    # ✅ OVERLAP CHECK
     overlapping = (
         db.query(Booking)
         .filter(
@@ -56,15 +43,11 @@ def create_booking_service(db: Session, data):
     )
 
     if overlapping:
-        raise HTTPException(
-            status_code=400,
-            detail="Room already booked for this time slot",
-        )
+        raise HTTPException(status_code=400, detail="Room already booked")
 
-    # ✅ CREATE BOOKING
     booking = Booking(
         user_id=user.id,
-        user_name=user.name,
+        user_name=user.username,
         room_id=room.id,
         required_capacity=data.required_capacity,
         date=data.date,
@@ -75,16 +58,10 @@ def create_booking_service(db: Session, data):
 
     db.add(booking)
     db.commit()
-    # ✅ Clear all booking cache (important)
-    # ✅ Clear bookings cache
+    db.refresh(booking)
+
     for key in redis_client.scan_iter("bookings:*"):
         redis_client.delete(key)
-
-    # ✅ Clear availability cache
-    for key in redis_client.scan_iter("availability:*"):
-        redis_client.delete(key)
-
-    db.refresh(booking)
 
     return {
         "id": booking.id,
@@ -99,8 +76,13 @@ def create_booking_service(db: Session, data):
 
 
 # ============================
-# ✅ GET BOOKINGS (✅ FIXED)
+# ✅ GET BOOKINGS ✅ FIXED
 # ============================
+from sqlalchemy.orm import Session
+from app.models.booking import Booking
+from app.models.room import Room
+
+
 def get_bookings_service(
     db: Session,
     user_name: str = None,
@@ -110,48 +92,37 @@ def get_bookings_service(
     limit: int = 10,
     offset: int = 0,
 ):
-
-    # ✅ Create unique cache key
-    cache_key = f"bookings:{user_name}:{room_name}:{date}:{reason}:{limit}:{offset}"
-
-    # ✅ Check Redis first
-    cached = redis_client.get(cache_key)
-    if cached:
-        print("✅ Returning from Redis Cache")
-        return json.loads(cached)
-
-    print("❌ Fetching from DB")
-
     query = db.query(Booking)
 
-    # ✅ Apply filters
     if user_name:
         query = query.filter(Booking.user_name.ilike(f"%{user_name.strip()}%"))
-
-    if reason:
-        query = query.filter(Booking.reason == reason)
 
     if room_name:
         room = db.query(Room).filter(Room.name.ilike(room_name.strip())).first()
 
         if room:
             query = query.filter(Booking.room_id == room.id)
-        else:
-            return {"data": [], "total": 0}  # ✅ FIXED
+
+    if reason:
+        query = query.filter(Booking.reason == reason)
 
     if date:
         from datetime import datetime
 
         date_obj = datetime.strptime(date, "%Y-%m-%d").date()
+
         query = query.filter(Booking.date == date_obj)
 
-    # ✅ ✅ IMPORTANT: total BEFORE pagination
     total = query.count()
 
-    # ✅ Apply pagination
-    bookings = query.offset(offset).limit(limit).all()
-
-    # ✅ Format response
+    bookings = (
+        query.order_by(
+            Booking.date.desc(), Booking.start_time.desc(), Booking.id.desc()
+        )
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
     result = [
         {
             "id": b.id,
@@ -166,13 +137,10 @@ def get_bookings_service(
         for b in bookings
     ]
 
-    # ✅ Final response
-    response = {"data": result, "total": total}
-
-    # ✅ Store in Redis
-    redis_client.setex(cache_key, 60, json.dumps(response))
-
-    return response
+    return {
+        "data": result,
+        "total": total,
+    }
 
 
 # ============================
@@ -191,12 +159,8 @@ def delete_booking_service(db: Session, booking_id: int):
     db.delete(booking)
     db.commit()
 
-    # ✅ Clear bookings cache
+    # ✅ clear cache
     for key in redis_client.scan_iter("bookings:*"):
-        redis_client.delete(key)
-
-    # ✅ Clear availability cache
-    for key in redis_client.scan_iter("availability:*"):
         redis_client.delete(key)
 
     return {"message": "Booking deleted successfully"}
@@ -213,14 +177,16 @@ def update_booking_service(db: Session, booking_id: int, data):
         raise HTTPException(status_code=404, detail="Booking not found")
 
     if data.user_name:
-        user = db.query(User).filter(User.name.ilike(data.user_name.strip())).first()
+        user = (
+            db.query(User).filter(User.username.ilike(data.user_name.strip())).first()
+        )
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         booking.user_id = user.id
-        booking.user_name = user.name
+        booking.user_name = user.username
 
-    if hasattr(data, "room_name") and data.room_name:
+    if data.room_name:
         room = db.query(Room).filter(Room.name.ilike(data.room_name.strip())).first()
         if not room:
             raise HTTPException(status_code=404, detail="Room not found")
@@ -230,16 +196,16 @@ def update_booking_service(db: Session, booking_id: int, data):
     if data.date:
         booking.date = data.date
 
-    if hasattr(data, "start_time") and data.start_time:
+    if data.start_time:
         booking.start_time = data.start_time
 
-    if hasattr(data, "end_time") and data.end_time:
+    if data.end_time:
         booking.end_time = data.end_time
 
     if data.reason is not None:
         booking.reason = data.reason
 
-    if hasattr(data, "required_capacity") and data.required_capacity:
+    if data.required_capacity:
         room = db.query(Room).filter(Room.id == booking.room_id).first()
 
         if data.required_capacity > room.capacity:
@@ -250,43 +216,21 @@ def update_booking_service(db: Session, booking_id: int, data):
 
         booking.required_capacity = data.required_capacity
 
+    # ✅ Validate time
     if booking.end_time <= booking.start_time:
-        raise HTTPException(status_code=400, detail="End time must be after start time")
-
-    overlapping = (
-        db.query(Booking)
-        .filter(
-            Booking.room_id == booking.room_id,
-            Booking.date == booking.date,
-            Booking.id != booking.id,
-            Booking.start_time < booking.end_time,
-            Booking.end_time > booking.start_time,
-        )
-        .first()
-    )
-
-    if overlapping:
-        raise HTTPException(
-            status_code=400,
-            detail="Room already booked for this time slot",
-        )
+        raise HTTPException(status_code=400, detail="Invalid time range")
 
     db.commit()
+    db.refresh(booking)
 
-    # ✅ Clear bookings cache
+    # ✅ clear cache
     for key in redis_client.scan_iter("bookings:*"):
         redis_client.delete(key)
-
-    # ✅ Clear availability cache
-    for key in redis_client.scan_iter("availability:*"):
-        redis_client.delete(key)
-
-    db.refresh(booking)
 
     return {
         "id": booking.id,
         "user_name": booking.user_name,
-        "room_name": booking.room.name,
+        "room_name": booking.room.name if booking.room else "Unknown Room",
         "required_capacity": booking.required_capacity,
         "date": booking.date.strftime("%Y-%m-%d"),
         "start_time": booking.start_time.strftime("%H:%M"),

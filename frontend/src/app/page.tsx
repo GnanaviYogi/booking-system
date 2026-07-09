@@ -27,7 +27,7 @@ export default function Home() {
 
   // ✅ AUTH CHECK
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     const user = localStorage.getItem("user");
 
     if (!token) {
@@ -108,15 +108,10 @@ export default function Home() {
       </div>
 
       {/* ✅ MODAL */}
-      <Dialog open={showForm} onClose={() => setShowForm(false)} fullWidth>
-        <DialogTitle sx={{ fontWeight: "600", color: "#1d4ed8" }}>
-          Book Room
-        </DialogTitle>
-
-        <DialogContent>
-          <BookingForm onClose={() => setShowForm(false)} />
-        </DialogContent>
-      </Dialog>
+     <BookingForm
+  open={showForm}
+  onClose={() => setShowForm(false)}
+/>
 
       {/* ✅ ✅ SNACKBAR */}
       <StatusSnackbar

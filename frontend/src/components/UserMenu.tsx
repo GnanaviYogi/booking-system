@@ -82,7 +82,9 @@ export default function UserMenu({ userEmail }: { userEmail: string | null }) {
 
         {/* ✅ EMAIL */}
         <Typography sx={{ fontSize: "14px", color: "#1e293b" }}>
-          {userEmail || "User"} 
+          {userEmail
+            ? userEmail.split("@")[0]
+            : "User"}
         </Typography>
       </Box>
 
