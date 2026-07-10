@@ -28,7 +28,7 @@ def check_availability(
     required_capacity: int = Query(..., gt=0, lt=100),
     db: Session = Depends(get_db),
 ):
-    # ✅ Create cache key (inside function ❗)
+    # ✅ Create cache key (inside function )
     cache_key = f"availability:{start_time}:{end_time}:{required_capacity}"
 
     # ✅ Check Redis first

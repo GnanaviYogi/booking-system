@@ -22,16 +22,16 @@ from app.services.booking import (
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
 
 
-# ============================
 # ✅ CREATE BOOKING
-# ============================
+
+
 @router.post("/", response_model=BookingResponse)
 def create_booking(
     data: BookingCreate,
     db: Session = Depends(get_db),
     Authorize: AuthJWT = Depends(),
 ):
-    Authorize.jwt_required()  # ✅ protect route
+    Authorize.jwt_required()
 
     try:
         return create_booking_service(db, data)
@@ -44,9 +44,7 @@ def create_booking(
         raise HTTPException(status_code=500, detail="Unexpected error occurred")
 
 
-# ============================
 # ✅ GET BOOKINGS
-# ============================
 @router.get("/", response_model=PaginatedBookings)
 def get_bookings(
     user_name: str = None,
@@ -58,7 +56,7 @@ def get_bookings(
     db: Session = Depends(get_db),
     Authorize: AuthJWT = Depends(),
 ):
-    Authorize.jwt_required()  # ✅ protect route
+    Authorize.jwt_required()
 
     try:
         return get_bookings_service(
@@ -79,16 +77,14 @@ def get_bookings(
         raise HTTPException(status_code=500, detail="Unexpected error occurred")
 
 
-# ============================
 # ✅ DELETE BOOKING
-# ============================
 @router.delete("/{booking_id}", response_model=dict)
 def delete_booking(
     booking_id: int,
     db: Session = Depends(get_db),
     Authorize: AuthJWT = Depends(),
 ):
-    Authorize.jwt_required()  # ✅ protect route
+    Authorize.jwt_required()
 
     try:
         return delete_booking_service(db, booking_id)
@@ -101,9 +97,9 @@ def delete_booking(
         raise HTTPException(status_code=500, detail="Unexpected error occurred")
 
 
-# ============================
 # ✅ UPDATE BOOKING
-# ============================
+
+
 @router.patch("/{booking_id}")
 def update_booking(
     booking_id: int,
@@ -111,7 +107,7 @@ def update_booking(
     db: Session = Depends(get_db),
     Authorize: AuthJWT = Depends(),
 ):
-    Authorize.jwt_required()  # ✅ protect route
+    Authorize.jwt_required()
 
     try:
         return update_booking_service(db, booking_id, data)

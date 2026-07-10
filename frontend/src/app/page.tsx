@@ -37,7 +37,7 @@ export default function Home() {
     }
   }, [router]);
 
-  // ✅ ✅ LOGIN SUCCESS MESSAGE (FIXED ✅🔥)
+  // ✅ ✅ LOGIN SUCCESS MESSAGE 
   useEffect(() => {
     const login = searchParams.get("login");
 
@@ -109,8 +109,8 @@ export default function Home() {
 
       {/* ✅ MODAL */}
      <BookingForm
-  open={showForm}
-  onClose={() => setShowForm(false)}
+        open={showForm}
+        onClose={() => setShowForm(false)}
 />
 
       {/* ✅ ✅ SNACKBAR */}
