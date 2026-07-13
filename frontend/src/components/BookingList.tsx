@@ -31,6 +31,8 @@ import ScheduleGrid from "./ScheduleGrid";
 export default function BookingList({
   onOpenForm,
   selectedRoom,
+  selectedDate,
+  setSelectedDate,
 }: any) {
   const [searchUser, setSearchUser] = useState("");
   const [filterReason, setFilterReason] = useState("");
@@ -43,12 +45,12 @@ export default function BookingList({
     "list" | "calendar"
   >("list");
 
-  const [currentDate, setCurrentDate] = useState(
-    new Date()
-  );
+  const [currentDate, setCurrentDate] =
+    useState(
+      new Date(selectedDate)
+    );
 
-  const currentDateStr =
-    currentDate.toISOString().split("T")[0];
+  const currentDateStr = selectedDate;
   
   const dayOfWeek = currentDate.getDay(); // 0=Sun, 6=Sat
 
@@ -56,22 +58,34 @@ export default function BookingList({
     dayOfWeek === 0 || dayOfWeek === 6;
 
   const handlePrevDay = () => {
-    const d = new Date(currentDate);
+    const d = new Date(selectedDate);
     d.setDate(d.getDate() - 1);
+
     setCurrentDate(d);
+    setSelectedDate(
+      d.toISOString().split("T")[0]
+    );
   };
 
   const handleNextDay = () => {
-    const d = new Date(currentDate);
+    const d = new Date(selectedDate);
     d.setDate(d.getDate() + 1);
+
     setCurrentDate(d);
+    setSelectedDate(
+      d.toISOString().split("T")[0]
+    );
   };
 
   const handleToday = () => {
-    setCurrentDate(new Date());
+    const today = new Date();
+
+    setCurrentDate(today);
+
+    setSelectedDate(
+      today.toISOString().split("T")[0]
+    );
   };
-  const [bookingToDelete, setBookingToDelete] =
-  useState<number | null>(null);
 
   
   const handleEdit = (booking: any) => {
@@ -79,7 +93,7 @@ export default function BookingList({
   setShowModal(true);
 };
 
-const handleDelete = (id: any) => {
+  const handleDelete = (id: any) => {
   setBookingToDelete(id);
   setConfirmOpen(true);
 };
@@ -173,6 +187,10 @@ const [deleteBooking] =
 
   const [confirmOpen, setConfirmOpen] =
     useState(false);
+
+  const [bookingToDelete, setBookingToDelete] =
+    useState<number | null>(null);
+    
   const roomColors: any = {
     Ganga: "#2563eb",
     Yamuna: "#16a34a",
@@ -260,11 +278,15 @@ const [deleteBooking] =
             type="date"
             size="small"
             value={currentDateStr}
-            onChange={(e) =>
+            onChange={(e) => {
               setCurrentDate(
                 new Date(e.target.value)
-              )
-            }
+              );
+
+              setSelectedDate(
+                e.target.value
+              );
+            }}
             sx={{
               bgcolor: "white",
               borderRadius: 1,
@@ -433,7 +455,7 @@ const [deleteBooking] =
 
               "&:hover": {
                 background:
-                  `${roomColors[b.room_name] || "#ccc"}20`,
+                  `${roomColors[b.room_name] || "#ccc"}08`,
               },
             }}
           >

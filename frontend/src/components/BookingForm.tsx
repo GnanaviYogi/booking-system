@@ -11,9 +11,12 @@ import {
   Select,
   MenuItem,
   Box,
+  Alert, 
 } from "@mui/material";
 
-import { useEffect } from "react";
+
+
+import { useEffect, useState } from "react";
 import {
   useCreateBookingMutation,
   useGetRoomsQuery,
@@ -23,6 +26,7 @@ import { useSnackbar } from "notistack";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+
 
 const schema = z
   .object({
@@ -52,6 +56,10 @@ export default function BookingForm({
   const [createBooking] = useCreateBookingMutation();
 
   const { enqueueSnackbar } = useSnackbar();
+  const [conflictMessage, setConflictMessage] =
+    useState("");
+
+
 
   const getTodayDate = () => {
     const d = new Date();
@@ -165,6 +173,9 @@ export default function BookingForm({
     );
 
     if (enteredCapacity > roomCapacity) {
+      
+
+
       enqueueSnackbar(
         `❌ ${data.roomName} supports only ${roomCapacity}`,
         {
@@ -187,6 +198,7 @@ export default function BookingForm({
 
       enqueueSnackbar(
         "Room booked successfully",
+        
         {
           variant: "success",
         }
@@ -196,7 +208,14 @@ export default function BookingForm({
 
       onClose();
     } catch (error: any) {
+
+  console.log(
+    "FULL CONFLICT RESPONSE",
+    error
+  );
+
   console.error("Booking Error:", error);
+
 
   let message = "Booking Failed";
 
@@ -274,6 +293,14 @@ export default function BookingForm({
               />
             )}
           />
+          {conflictMessage && (
+            <Alert
+              severity="error"
+              sx={{ mb: 2 }}
+            >
+              {conflictMessage}
+            </Alert>
+          )}
 
           <Typography fontSize="13px">
             Room *

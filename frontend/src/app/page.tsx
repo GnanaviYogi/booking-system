@@ -17,6 +17,13 @@ export default function Home() {
 
   const [showForm, setShowForm] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] =
+  useState(
+    new Date()
+      .toISOString()
+      .split("T")[0]
+  );
+
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
   // ✅ Snackbar state
@@ -98,6 +105,7 @@ export default function Home() {
           <RoomList
             selectedRoom={selectedRoom}
             onSelectRoom={setSelectedRoom}
+            selectedDate={selectedDate}
           />
         </div>
 
@@ -106,6 +114,8 @@ export default function Home() {
           <BookingList
             onOpenForm={() => setShowForm(true)}
             selectedRoom={selectedRoom}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
           />
         </div>
       </div>

@@ -10,7 +10,8 @@ import type {
 } from "@reduxjs/toolkit/query";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: "http://127.0.0.1:8000/",
+  baseUrl:"http://127.0.0.1:8000/api/v1/",
+  
 
   prepareHeaders: (headers) => {
     const token =

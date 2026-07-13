@@ -1,9 +1,25 @@
 "use client";
 
-import { useGetRoomsQuery } from "@/services/api";
+import { useGetBookingsQuery, useGetRoomsQuery } from "@/services/api";
+import RoomUtilization from "./RoomUtilization";
 
-export default function RoomList({ selectedRoom, onSelectRoom }: any) {
+export default function RoomList({ selectedRoom, onSelectRoom, selectedDate }: any) {
   const { data: rooms } = useGetRoomsQuery(undefined);
+  const { data: bookingsData } =
+    useGetBookingsQuery({
+      date: selectedDate,
+      limit: 5000,
+      offset: 0,
+    });
+
+  const bookings =
+    bookingsData?.data || [];
+
+  const dayOfWeek =
+    new Date(selectedDate).getDay();
+
+  const isWeekend =
+    dayOfWeek === 0 || dayOfWeek === 6;
 
   const format = (name: string) =>
     name.charAt(0).toUpperCase() + name.slice(1);
@@ -74,6 +90,14 @@ export default function RoomList({ selectedRoom, onSelectRoom }: any) {
             <div style={{ fontSize: "10px", color: "#666" }}>
               {room.capacity} seats available
             </div>
+            {!isWeekend && (
+              <RoomUtilization
+                roomName={room.name}
+                bookings={bookings}
+              />
+            )}
+         
+            
           </div>
         );
       })}

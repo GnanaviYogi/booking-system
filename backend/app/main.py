@@ -89,10 +89,15 @@ def root():
 
 
 # ✅ ROUTERS
-app.include_router(room_api.router)
-app.include_router(booking_api.router)
-app.include_router(user_router)
-app.include_router(auth.router)
+API_PREFIX = "/api/v1"
+
+app.include_router(auth.router, prefix=API_PREFIX)
+
+app.include_router(booking_api.router, prefix=API_PREFIX)
+
+app.include_router(room_api.router, prefix=API_PREFIX)
+
+app.include_router(user_router, prefix=API_PREFIX)
 
 
 # ✅ Redis test
