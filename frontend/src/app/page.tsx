@@ -56,9 +56,12 @@ export default function Home() {
       style={{
         height: "100vh",
         padding: "10px",
+        overflow: "hidden",
         background: "linear-gradient(120deg, #dbeafe, #f0f9ff, #eef2ff)",
       }}
     >
+
+
       {/* ✅ HEADER */}
       <div
         style={{

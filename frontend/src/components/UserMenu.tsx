@@ -36,10 +36,14 @@ export default function UserMenu({ userEmail }: { userEmail: string | null }) {
   };
 
   const confirmLogout = () => {
-    localStorage.removeItem("token");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
     localStorage.removeItem("user");
-    window.location.href = "/login?logout=1";
+
+    window.location.href =
+      "/login?logout=1";
   };
+
 
   return (
     <>
@@ -77,12 +81,24 @@ export default function UserMenu({ userEmail }: { userEmail: string | null }) {
             fontSize: "14px"
           }}
         >
-          {userEmail ? userEmail.charAt(0).toUpperCase() : "U"}
+          {userEmail &&
+            userEmail !== "undefined"
+              ? userEmail.charAt(0).toUpperCase()
+              : "U"}
         </Box>
 
         {/* ✅ EMAIL */}
-        <Typography sx={{ fontSize: "14px", color: "#1e293b" }}>
-          {userEmail
+       
+
+        <Typography
+          sx={{
+            fontSize: "14px",
+            color: "#1e293b",
+            fontWeight: 500,
+          }}
+        >
+          {userEmail &&
+          userEmail !== "undefined"
             ? userEmail.split("@")[0]
             : "User"}
         </Typography>

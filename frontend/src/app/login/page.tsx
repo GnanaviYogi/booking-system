@@ -164,7 +164,7 @@ export default function LoginPage() {
 
       localStorage.setItem(
         "user",
-        res.username
+        username || email
       );
 
       router.push("/?login=1");
