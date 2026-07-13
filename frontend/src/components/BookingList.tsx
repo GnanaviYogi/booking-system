@@ -173,6 +173,24 @@ const [deleteBooking] =
 
   const [confirmOpen, setConfirmOpen] =
     useState(false);
+  const roomColors: any = {
+    Ganga: "#2563eb",
+    Yamuna: "#16a34a",
+    Kaveri: "#7c3aed",
+    Narmada: "#ea580c",
+    Saraswathi: "#0891b2",
+    Brahmaputra: "#dc2626",
+    Godavari: "#4f46e5",
+    Krishna: "#0d9488",
+    Mahanadi: "#ca8a04",
+    Sabarmati: "#c026d3",
+    Tapti: "#65a30d",
+    Indus: "#0284c7",
+    Saraswati: "#9333ea",
+  };
+
+
+
 
   const totalPages = Math.max(
     1,
@@ -396,13 +414,37 @@ const [deleteBooking] =
               display: "grid",
               gridTemplateColumns:
                 "2fr 1.5fr 2fr 1fr 1fr",
+
               alignItems: "center",
               p: 1,
               mb: 0.5,
-              background: "#f8fafc",
+
+              background:
+                `${roomColors[b.room_name] || "#ccc"}12`,
+
+              borderLeft:
+                `6px solid ${
+                  roomColors[b.room_name] || "#ccc"
+                }`,
+
+              borderRadius: 1,
+
+              transition: "0.2s",
+
+              "&:hover": {
+                background:
+                  `${roomColors[b.room_name] || "#ccc"}20`,
+              },
             }}
           >
-            <Typography>
+            <Typography
+              sx={{
+                fontWeight: 600,
+                color:
+                  roomColors[b.room_name] ||
+                  "inherit",
+              }}
+            >
               {b.room_name}
             </Typography>
 

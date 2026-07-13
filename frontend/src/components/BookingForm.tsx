@@ -141,6 +141,18 @@ export default function BookingForm({
     }
   }, [selected, setValue]);
 
+  useEffect(() => {
+    const loggedInUser =
+      localStorage.getItem("user");
+
+    if (loggedInUser) {
+      setValue(
+        "userName",
+        loggedInUser.split("@")[0]
+      );
+    }
+  }, [setValue]);
+
   const onSubmit = async (data: any) => {
     const selectedRoom = rooms.find(
       (r: any) => r.name === data.roomName
@@ -252,6 +264,9 @@ export default function BookingForm({
               <TextField
                 size="small"
                 {...field}
+                InputProps={{
+                  readOnly: true,
+                }}
                 error={!!errors.userName}
                 helperText={
                   errors.userName?.message
