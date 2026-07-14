@@ -59,7 +59,7 @@ def login_user(data):
             raise HTTPException(status_code=404, detail="Account not found")
 
         if not verify_password(data.password, user.password):
-            raise HTTPException(status_code=401, detail="Invalid password")
+            raise HTTPException(status_code=400, detail="Invalid password")
 
         return user
 

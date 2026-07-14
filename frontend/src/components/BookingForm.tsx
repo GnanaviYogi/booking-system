@@ -21,11 +21,15 @@ import {
   useCreateBookingMutation,
   useGetRoomsQuery,
   useGetAvailabilityQuery,
+  useGetBookingsQuery,
 } from "@/services/api";
 import { useSnackbar } from "notistack";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import BookingConflictAlert from "./BookingConflictAlert";
+
+
 
 
 const schema = z
@@ -52,12 +56,23 @@ export default function BookingForm({
   onClose,
 }: any) {
   const { data: rooms = [] } = useGetRoomsQuery(undefined);
+  const { data: bookingsData } =
+    useGetBookingsQuery({
+      limit: 5000,
+      offset: 0,
+    });
+
+  const bookings =
+    bookingsData?.data || [];
 
   const [createBooking] = useCreateBookingMutation();
 
   const { enqueueSnackbar } = useSnackbar();
   const [conflictMessage, setConflictMessage] =
     useState("");
+
+  const [conflictBooking, setConflictBooking] =
+    useState<any>(null);
 
 
 
@@ -203,6 +218,7 @@ export default function BookingForm({
           variant: "success",
         }
       );
+      setConflictBooking(null);
 
       reset();
 
@@ -218,6 +234,21 @@ export default function BookingForm({
 
 
   let message = "Booking Failed";
+  const conflict = bookings.find(
+    (b: any) =>
+      b.room_name === data.roomName &&
+      b.date === data.date &&
+      data.startTime < b.end_time &&
+      data.endTime > b.start_time
+  );
+
+
+
+
+
+
+
+
 
   if (error?.data?.detail) {
     if (typeof error.data.detail === "string") {
@@ -230,6 +261,15 @@ export default function BookingForm({
         JSON.stringify(error.data.detail);
     }
   }
+
+  if (conflict) {
+    setConflictBooking(conflict);
+  }
+
+
+
+
+  
 
   enqueueSnackbar(message, {
     variant: "error",
@@ -249,6 +289,8 @@ export default function BookingForm({
         )
       : rooms;
 
+
+
   return (
     <Dialog
       open={open}
@@ -266,6 +308,14 @@ export default function BookingForm({
       </DialogTitle>
 
       <DialogContent>
+        
+      <BookingConflictAlert
+        booking={conflictBooking}
+      />
+
+
+
+
         <Box
           display="flex"
           flexDirection="column"
@@ -293,14 +343,7 @@ export default function BookingForm({
               />
             )}
           />
-          {conflictMessage && (
-            <Alert
-              severity="error"
-              sx={{ mb: 2 }}
-            >
-              {conflictMessage}
-            </Alert>
-          )}
+        
 
           <Typography fontSize="13px">
             Room *
@@ -449,8 +492,15 @@ export default function BookingForm({
           Book
         </Button>
 
+
+
         <Button
-          onClick={onClose}
+          onClick={() => {
+            setConflictBooking(null);
+            onClose();
+          }}
+
+        
           variant="outlined"
           size="small"
           sx={{ textTransform: "none" }}
