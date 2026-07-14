@@ -7,6 +7,7 @@ import StatusSnackbar from "@/components/StatusSnackbar";
 import AuthLayout from "@/components/auth/AuthLayout";
 import LoginForm from "@/components/auth/LoginForm";
 import RegisterForm from "@/components/auth/RegisterForm";
+import { Alert } from "@mui/material";
 
 import {
   useLoginMutation,
@@ -57,6 +58,9 @@ export default function LoginPage() {
   const [message, setMessage] =
     useState("");
 
+  const [logoutMessage, setLogoutMessage] =
+    useState("");
+
   const [severity, setSeverity] =
     useState<"success" | "error">(
       "success"
@@ -77,12 +81,10 @@ export default function LoginPage() {
     if (
       params.get("logout") === "1"
     ) {
-      setMessage(
+      setLogoutMessage(
         "Logged out successfully ✅"
       );
 
-      setSeverity("success");
-      setOpenSnack(true);
     }
   }, []);
 
@@ -220,8 +222,27 @@ export default function LoginPage() {
         setOpenSnack(true);
       }
     };
+  
+return (
+  <>
+    {logoutMessage && (
+      <Alert
+        severity="success"
+        sx={{
+          position: "fixed",
+          top: 24,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "fit-content",
+          minWidth: 320,
+          zIndex: 9999,
+          fontWeight: 600,
+        }}
+      >
+        {logoutMessage}
+      </Alert>
+     )}
 
-  return (
     <AuthLayout>
       {isRegister ? (
         <RegisterForm
@@ -282,5 +303,6 @@ export default function LoginPage() {
         }
       />
     </AuthLayout>
+  </>
   );
 }
