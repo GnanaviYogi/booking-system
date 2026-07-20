@@ -61,56 +61,52 @@ export default function RegisterForm({
     value: string,
     isValid: boolean
   ) => ({
-    mb: 0.8,
+    mb: 1.2,
 
     "& .MuiOutlinedInput-root": {
-      height: 42,
+      height: 52,
 
       borderRadius: "14px",
 
-      background: "#FFFFFF",
+      background: "rgba(255,255,255,0.08)",
+
+      backdropFilter: "blur(10px)",
+
+      color: "#FFFFFF",
 
       "& fieldset": {
         borderColor: !value
-          ? "#E2E8F0"
+          ? "rgba(255,255,255,0.15)"
           : isValid
           ? "#22C55E"
           : "#EF4444",
       },
 
       "&:hover fieldset": {
-        borderColor: !value
-          ? "#CBD5E1"
-          : isValid
-          ? "#22C55E"
-          : "#EF4444",
+        borderColor: "#60A5FA",
       },
 
       "&.Mui-focused fieldset": {
         borderWidth: "2px",
+        borderColor: "#60A5FA",
+      },
 
-        borderColor: !value
-          ? "#6366F1"
-          : isValid
-          ? "#22C55E"
-          : "#EF4444",
+      "& input": {
+        color: "#FFFFFF",
       },
     },
 
     "& .MuiInputLabel-root": {
-      color: !value
-        ? "#64748B"
-        : isValid
-        ? "#22C55E"
-        : "#EF4444",
+      color: "rgba(255,255,255,0.7)",
     },
 
     "& .MuiInputLabel-root.Mui-focused": {
-      color: !value
-        ? "#6366F1"
-        : isValid
-        ? "#22C55E"
-        : "#EF4444",
+      color: "#93C5FD",
+    },
+
+    "& .MuiFormHelperText-root": {
+      color: "#FCA5A5",
+      minHeight: "20px",
     },
   });
 
@@ -127,16 +123,16 @@ export default function RegisterForm({
       >
         <BusinessRoundedIcon
           sx={{
-            color: "#6366F1",
+            color: "#60A5FA",
             fontSize: 20,
           }}
         />
 
         <Typography
           sx={{
-            fontSize: 14,
+            fontSize: 15,
             fontWeight: 700,
-            color: "#4F46E5",
+            color: "#60A5FA",
           }}
         >
           Room Booking
@@ -144,12 +140,11 @@ export default function RegisterForm({
       </Box>
 
       <Typography
-        variant="h5"
+        variant="h4"
         textAlign="center"
         sx={{
-          color: "#111827",
-          fontWeight: 500,
-          letterSpacing: "-0.6px",
+          color: "#FFFFFF",
+          fontWeight: 700,
           mb: 0.5,
         }}
       >
@@ -158,9 +153,11 @@ export default function RegisterForm({
 
       <Typography
         textAlign="center"
-        color="#64748B"
-        fontSize={12}
-        mb={2}
+        sx={{
+          color: "rgba(255,255,255,0.75)",
+          fontSize: 14,
+          mb: 3,
+        }}
       >
         Create your account to continue
       </Typography>
@@ -226,7 +223,7 @@ export default function RegisterForm({
               >
                 <InfoOutlinedIcon
                   sx={{
-                    color: "#6366F1",
+                    color: "#93C5FD",
                     fontSize: 20,
                   }}
                 />
@@ -268,15 +265,26 @@ export default function RegisterForm({
           vertical: "bottom",
           horizontal: "left",
         }}
+        PaperProps={{
+          sx: {
+            background:
+              "rgba(15,23,42,0.95)",
+            backdropFilter:
+              "blur(20px)",
+            color: "white",
+            border:
+              "1px solid rgba(255,255,255,0.1)",
+          },
+        }}
       >
         <Box
           sx={{
             p: 2,
-            width: 240,
+            width: 250,
           }}
         >
           <Typography
-            fontWeight={600}
+            fontWeight={700}
             fontSize={13}
             mb={1}
           >
@@ -286,8 +294,8 @@ export default function RegisterForm({
           <Typography
             color={
               password.length >= 8
-                ? "success.main"
-                : "error.main"
+                ? "#22C55E"
+                : "#EF4444"
             }
             fontSize={12}
           >
@@ -299,8 +307,8 @@ export default function RegisterForm({
           <Typography
             color={
               /[A-Z]/.test(password)
-                ? "success.main"
-                : "error.main"
+                ? "#22C55E"
+                : "#EF4444"
             }
             fontSize={12}
           >
@@ -312,8 +320,8 @@ export default function RegisterForm({
           <Typography
             color={
               /[a-z]/.test(password)
-                ? "success.main"
-                : "error.main"
+                ? "#22C55E"
+                : "#EF4444"
             }
             fontSize={12}
           >
@@ -325,8 +333,8 @@ export default function RegisterForm({
           <Typography
             color={
               /\d/.test(password)
-                ? "success.main"
-                : "error.main"
+                ? "#22C55E"
+                : "#EF4444"
             }
             fontSize={12}
           >
@@ -338,8 +346,8 @@ export default function RegisterForm({
           <Typography
             color={
               /[!@#$%^&*]/.test(password)
-                ? "success.main"
-                : "error.main"
+                ? "#22C55E"
+                : "#EF4444"
             }
             fontSize={12}
           >
@@ -355,27 +363,32 @@ export default function RegisterForm({
         variant="contained"
         onClick={handleRegister}
         sx={{
-          height: 44,
+          height: 50,
 
           mt: 1,
 
           borderRadius: "14px",
 
-          fontWeight: 600,
-
-          fontSize: "0.95rem",
+          fontWeight: 700,
 
           textTransform: "none",
+
+          fontSize: "1rem",
 
           background:
             "linear-gradient(135deg,#2563EB,#8B5CF6)",
 
           boxShadow:
-            "0 10px 20px rgba(99,102,241,.25)",
+            "0 0 25px rgba(99,102,241,.35)",
+
+          transition: "all .3s ease",
 
           "&:hover": {
+            transform: "translateY(-2px)",
             background:
               "linear-gradient(135deg,#1D4ED8,#7C3AED)",
+            boxShadow:
+              "0 0 35px rgba(124,58,237,.6)",
           },
         }}
       >
@@ -383,30 +396,23 @@ export default function RegisterForm({
       </Button>
 
       <Typography
-      textAlign="center"
-      mt={1.5}
-      sx={{
-        cursor: "pointer",
+        textAlign="center"
+        mt={2}
+        sx={{
+          cursor: "pointer",
+          color: "#93C5FD",
+          fontWeight: 600,
+          fontSize: 14,
 
-        color: "#6366F1",
-
-        fontSize: "13px",
-
-        fontWeight: 500,
-
-        letterSpacing: "0.1px",
-
-        transition: "all 0.2s ease",
-
-        "&:hover": {
-          textDecoration: "underline",
-          color: "#4F46E5",
-        },
-      }}
-      onClick={onSwitch}
-    >
-      Already have an account? Login
-    </Typography>
+          "&:hover": {
+            color: "#BFDBFE",
+            textDecoration: "underline",
+          },
+        }}
+        onClick={onSwitch}
+      >
+        Already have an account? Login
+      </Typography>
     </>
   );
 }

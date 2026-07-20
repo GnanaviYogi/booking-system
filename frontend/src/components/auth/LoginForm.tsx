@@ -33,56 +33,51 @@ export default function LoginForm({
     value: string,
     isValid: boolean
   ) => ({
-    mb: 1.4,
+    mb: 1.6,
 
     "& .MuiOutlinedInput-root": {
-      height: 42,
+      height: 52,
 
       borderRadius: "14px",
 
-      background: "#FFFFFF",
+      background: "rgba(255,255,255,0.08)",
+
+      color: "#FFFFFF",
+
+      backdropFilter: "blur(10px)",
 
       "& fieldset": {
         borderColor: !value
-          ? "#E2E8F0"
+          ? "rgba(255,255,255,0.15)"
           : isValid
           ? "#22C55E"
           : "#EF4444",
       },
 
       "&:hover fieldset": {
-        borderColor: !value
-          ? "#CBD5E1"
-          : isValid
-          ? "#22C55E"
-          : "#EF4444",
+        borderColor: "#60A5FA",
       },
 
       "&.Mui-focused fieldset": {
         borderWidth: "2px",
+        borderColor: "#60A5FA",
+      },
 
-        borderColor: !value
-          ? "#6366F1"
-          : isValid
-          ? "#22C55E"
-          : "#EF4444",
+      "& input": {
+        color: "#FFFFFF",
       },
     },
 
     "& .MuiInputLabel-root": {
-      color: !value
-        ? "#64748B"
-        : isValid
-        ? "#22C55E"
-        : "#EF4444",
+      color: "rgba(255,255,255,0.7)",
     },
 
     "& .MuiInputLabel-root.Mui-focused": {
-      color: !value
-        ? "#6366F1"
-        : isValid
-        ? "#22C55E"
-        : "#EF4444",
+      color: "#93C5FD",
+    },
+
+    "& .MuiFormHelperText-root": {
+      color: "#FCA5A5",
     },
   });
 
@@ -99,16 +94,16 @@ export default function LoginForm({
       >
         <BusinessRoundedIcon
           sx={{
-            color: "#6366F1",
+            color: "#60A5FA",
             fontSize: 20,
           }}
         />
 
         <Typography
           sx={{
-            fontSize: 14,
+            fontSize: 15,
             fontWeight: 700,
-            color: "#4F46E5",
+            color: "#60A5FA",
           }}
         >
           Room Booking
@@ -116,12 +111,11 @@ export default function LoginForm({
       </Box>
 
       <Typography
-        variant="h5"
+        variant="h4"
         textAlign="center"
         sx={{
-          color: "#111827",
-          fontWeight: 500,
-          letterSpacing: "-0.6px",
+          color: "#FFFFFF",
+          fontWeight: 700,
           mb: 0.5,
         }}
       >
@@ -130,9 +124,11 @@ export default function LoginForm({
 
       <Typography
         textAlign="center"
-        color="#64748B"
-        fontSize={13}
-        mb={2}
+        sx={{
+          color: "rgba(255,255,255,0.75)",
+          fontSize: 14,
+          mb: 3,
+        }}
       >
         Sign in to continue
       </Typography>
@@ -177,36 +173,53 @@ export default function LoginForm({
         variant="contained"
         onClick={handleLogin}
         sx={{
-          height: 44,
+          height: 50,
 
           mt: 1,
 
           borderRadius: "14px",
 
-          fontWeight: 600,
+          fontWeight: 700,
 
           textTransform: "none",
+
+          fontSize: "1rem",
 
           background:
             "linear-gradient(135deg,#2563EB,#8B5CF6)",
 
           boxShadow:
-            "0 10px 20px rgba(99,102,241,.30)",
+            "0 0 25px rgba(99,102,241,.35)",
+
+          transition: "all .3s ease",
 
           "&:hover": {
+            transform: "translateY(-2px)",
             background:
               "linear-gradient(135deg,#1D4ED8,#7C3AED)",
+            boxShadow:
+              "0 0 35px rgba(124,58,237,.6)",
           },
         }}
       >
         Login
       </Button>
 
-      <Divider sx={{ my: 2 }}>
+      <Divider
+        sx={{
+          my: 3,
+
+          "&::before, &::after": {
+            borderColor:
+              "rgba(255,255,255,0.12)",
+          },
+        }}
+      >
         <Typography
           sx={{
-            fontSize: 10,
-            color: "#94A3B8",
+            fontSize: 11,
+            color:
+              "rgba(255,255,255,0.55)",
             fontWeight: 600,
             letterSpacing: "1px",
           }}
@@ -219,11 +232,12 @@ export default function LoginForm({
         textAlign="center"
         sx={{
           cursor: "pointer",
-          color: "#6366F1",
+          color: "#93C5FD",
           fontWeight: 600,
           fontSize: 14,
 
           "&:hover": {
+            color: "#BFDBFE",
             textDecoration: "underline",
           },
         }}

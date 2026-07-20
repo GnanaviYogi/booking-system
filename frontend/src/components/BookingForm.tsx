@@ -1,17 +1,14 @@
 "use client";
 
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+
   Button,
   Typography,
   TextField,
   Select,
   MenuItem,
   Box,
-  Alert, 
+  
 } from "@mui/material";
 
 
@@ -51,9 +48,9 @@ const schema = z
   );
 
 export default function BookingForm({
-  open,
+  
   selected,
-  onClose,
+  
 }: any) {
   const { data: rooms = [] } = useGetRoomsQuery(undefined);
   const { data: bookingsData } =
@@ -221,8 +218,9 @@ export default function BookingForm({
       setConflictBooking(null);
 
       reset();
+      window.location.href = "/list";
 
-      onClose();
+      
     } catch (error: any) {
 
   console.log(
@@ -289,25 +287,46 @@ export default function BookingForm({
         )
       : rooms;
 
+      const glassField = {
+        "& .MuiOutlinedInput-root": {
+          background:
+            "rgba(255,255,255,.08)",
+
+          backdropFilter:
+            "blur(20px)",
+
+          borderRadius: "14px",
+
+          color: "white",
+        },
+
+        "& input": {
+          color: "white",
+        },
+
+        "& .MuiInputLabel-root": {
+          color:
+            "rgba(255,255,255,.7)",
+        },
+
+        "& .MuiOutlinedInput-notchedOutline": {
+          borderColor:
+            "rgba(255,255,255,.12)",
+        },
+
+        "& .MuiFormHelperText-root": {
+          color: "#FCA5A5",
+        },
+      };
+
 
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      maxWidth="sm"
-    >
-      <DialogTitle
-        sx={{
-          fontSize: "16px",
-          pb: 1,
-        }}
-      >
-        Book Room
-      </DialogTitle>
+    <>
+      
 
-      <DialogContent>
+
+      <Box>
         
       <BookingConflictAlert
         booking={conflictBooking}
@@ -316,13 +335,18 @@ export default function BookingForm({
 
 
 
-        <Box
-          display="flex"
-          flexDirection="column"
-          gap={1}
-          mt={1}
-        >
-          <Typography fontSize="13px">
+       <Box
+        
+        display="flex"
+        flexDirection="column"
+        gap={2}
+        mt={2}
+      >
+          <Typography
+            fontSize="13px"
+            fontWeight={600}
+            color="white"
+          >
             User Name *
           </Typography>
 
@@ -332,6 +356,7 @@ export default function BookingForm({
             render={({ field }) => (
               <TextField
                 size="small"
+                sx={glassField}
                 {...field}
                 InputProps={{
                   readOnly: true,
@@ -345,7 +370,11 @@ export default function BookingForm({
           />
         
 
-          <Typography fontSize="13px">
+          <Typography
+             fontSize="13px"
+            fontWeight={600}
+            color="white"
+            >
             Room *
           </Typography>
 
@@ -356,6 +385,27 @@ export default function BookingForm({
               <Select
                 size="small"
                 {...field}
+                
+                sx={{
+                    
+                  ...glassField,
+                    "& .MuiInputBase-root": {
+                      height: 44,
+                    },
+
+                    background:
+                      "rgba(255,255,255,.08)",
+
+                    borderRadius: "14px",
+
+                    color: "white",
+
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor:
+                        "rgba(255,255,255,.12)",
+                    },
+                  }}
+
                 error={!!errors.roomName}
               >
                 {roomsToShow.map((r: any) => (
@@ -370,7 +420,11 @@ export default function BookingForm({
             )}
           />
 
-          <Typography fontSize="13px">
+          <Typography
+            fontSize="13px"
+            fontWeight={600}
+            color="white"
+            >
             Capacity *
           </Typography>
 
@@ -381,6 +435,7 @@ export default function BookingForm({
               <TextField
                 size="small"
                 type="number"
+                sx={glassField}
                 {...field}
                 error={!!errors.capacity}
                 helperText={
@@ -390,7 +445,11 @@ export default function BookingForm({
             )}
           />
 
-          <Typography fontSize="13px">
+          <Typography
+            fontSize="13px"
+            fontWeight={600}
+            color="white"
+            >
             Date *
           </Typography>
 
@@ -401,12 +460,17 @@ export default function BookingForm({
               <TextField
                 type="date"
                 size="small"
+                sx={glassField}
                 {...field}
               />
             )}
           />
 
-          <Typography fontSize="13px">
+          <Typography
+            fontSize="13px"
+            fontWeight={600}
+            color="white"
+          >
             Start Time *
           </Typography>
 
@@ -417,12 +481,17 @@ export default function BookingForm({
               <TextField
                 type="time"
                 size="small"
+                sx={glassField}
                 {...field}
               />
             )}
           />
 
-          <Typography fontSize="13px">
+          <Typography
+            fontSize="13px"
+            fontWeight={600}
+            color="white"
+            >
             End Time *
           </Typography>
 
@@ -433,6 +502,7 @@ export default function BookingForm({
               <TextField
                 type="time"
                 size="small"
+                sx={glassField}
                 {...field}
                 error={!!errors.endTime}
                 helperText={
@@ -442,7 +512,11 @@ export default function BookingForm({
             )}
           />
 
-          <Typography fontSize="13px">
+          <Typography 
+            fontSize="13px"
+            fontWeight={600}
+            color="white"
+            >
             Reason *
           </Typography>
 
@@ -453,6 +527,21 @@ export default function BookingForm({
               <Select
                 size="small"
                 {...field}
+                
+            sx={{
+                background:
+                  "rgba(255,255,255,.08)",
+
+                borderRadius: "14px",
+
+                color: "white",
+
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor:
+                    "rgba(255,255,255,.12)",
+                },
+              }}
+
                 error={!!errors.reason}
               >
                 <MenuItem value="">
@@ -480,34 +569,53 @@ export default function BookingForm({
             )}
           />
         </Box>
-      </DialogContent>
+      </Box>
 
-      <DialogActions sx={{ p: 1 }}>
-        <Button
-          onClick={handleSubmit(onSubmit)}
-          variant="contained"
-          size="small"
-          sx={{ textTransform: "none" }}
-        >
-          Book
-        </Button>
+      <Box
+        mt={3}
+        display="flex"
+        gap={2}
+      >
+
+
+      <Button
+        onClick={handleSubmit(onSubmit)}
+        variant="contained"
+        sx={{
+          px: 4,
+          py: 1,
+          borderRadius: "12px",
+          fontWeight: 700,
+          textTransform: "none",
+          background:
+            "linear-gradient(135deg,#3B82F6,#8B5CF6)",
+        }}
+      >
+        📅 Book Room
+      </Button>
 
 
 
         <Button
           onClick={() => {
-            setConflictBooking(null);
-            onClose();
+            window.history.back();
+        
           }}
 
         
           variant="outlined"
-          size="small"
-          sx={{ textTransform: "none" }}
+          sx={{
+            borderRadius: "12px",
+            textTransform: "none",
+            borderColor:
+              "rgba(255,255,255,.2)",
+            color:"white",
+          }}
+         
         >
           Close
         </Button>
-      </DialogActions>
-    </Dialog>
+      </Box>
+    </>
   );
 }

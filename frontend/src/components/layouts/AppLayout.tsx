@@ -1,36 +1,41 @@
-import { Box, Paper } from "@mui/material";
+"use client";
 
-export default function AuthLayout({
+import { Box } from "@mui/material";
+import { ReactNode } from "react";
+import AppHeader from "../AppHeader";
+
+interface AppLayoutProps {
+  children: ReactNode;
+}
+
+export default function AppLayout({
   children,
-}: {
-  children: React.ReactNode;
-}) {
+}: AppLayoutProps) {
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        position: "relative",
-        overflow: "hidden",
-        background:
-          "radial-gradient(circle at top left, #1e3a8a 0%, #081028 45%, #020617 100%)",
-      }}
-    >
+          <Box
+        sx={{
+          minHeight: "100vh",
+          position: "relative",
+          overflowX: "hidden",
+
+          background:
+            "radial-gradient(circle at top left, #1e3a8a 0%, #081028 45%, #020617 100%)",
+        }}
+      >
+
       {/* Floating Orb 1 */}
 
       <Box
         sx={{
-          position: "absolute",
-          width: 500,
+         position: "absolute",
+         width: 500,
           height: 500,
           borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(59,130,246,0.35), transparent)",
+         background:
+            "radial-gradient(circle, rgba(59,130,2*6,0.35), transparent)",
           filter: "blur(100px)",
-          top: -120,
-          left: -120,
+          bottom: -100,
+          left: -100,
           animation: "float1 18s ease-in-out infinite",
         }}
       />
@@ -38,14 +43,14 @@ export default function AuthLayout({
       {/* Floating Orb 2 */}
 
       <Box
-        sx={{
-          position: "absolute",
-          width: 450,
+      sx={{
+        position: "absolute",
+         width: 450,
           height: 450,
           borderRadius: "50%",
           background:
-            "radial-gradient(circle, rgba(139,92,246,0.28), transparent)",
-          filter: "blur(120px)",
+           "radial-gradient(circle, rgba(139*92,246,0.25), transparent)",
+        filter: "blur(120px)",
           bottom: -120,
           right: -120,
           animation: "float2 22s ease-in-out infinite",
@@ -69,9 +74,9 @@ export default function AuthLayout({
         }}
       />
 
-      {/* Stars */}
+      {/* Floating Particles */}
 
-      {[...Array(30)].map((_, i) => (
+      {[...Array(40)].map((_, i) => (
         <Box
           key={i}
           sx={{
@@ -80,7 +85,7 @@ export default function AuthLayout({
             height: 3,
             borderRadius: "50%",
             background: "#fff",
-            opacity: 0.4,
+            opacity: 0.45,
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`,
             animation: `star ${
@@ -90,70 +95,23 @@ export default function AuthLayout({
         />
       ))}
 
-      {/* Login Card */}
+      {/* Content */}
 
-      <Paper
-        elevation={0}
+      <Box
         sx={{
-          width: {
-            xs: "92%",
-            sm: 430,
-          },
-
-          p: 3,
-
-          borderRadius: "28px",
-
           position: "relative",
-          overflow: "hidden",
-
-          background:
-            "rgba(255,255,255,0.08)",
-
-          backdropFilter: "blur(25px)",
-
-          border:
-            "1px solid rgba(255,255,255,0.15)",
-
-          boxShadow:
-            "0 20px 60px rgba(0,0,0,0.45)",
-
-          animation:
-            "floatCard 6s ease-in-out infinite",
+          zIndex: 2,
+          p: 2,
+          minHeight: "100vh",
+          pb: 4,
         }}
       >
-        {/* Top Gradient Line */}
-
-        <Box
-          sx={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: 4,
-            background:
-              "linear-gradient(90deg,#2563EB,#8B5CF6,#EC4899)",
-          }}
-        />
-
-        {/* Decorative Circle */}
-
-        <Box
-          sx={{
-            position: "absolute",
-            top: 18,
-            right: 18,
-            width: 80,
-            height: 80,
-            borderRadius: "50%",
-            background:
-              "linear-gradient(135deg,#2563EB,#8B5CF6)",
-            opacity: 0.12,
-          }}
-        />
-
-        {children}
-      </Paper>
+        <>
+          <AppHeader />
+          {children}
+        </>
+        
+      </Box>
 
       <style jsx global>{`
         @keyframes float1 {
@@ -189,18 +147,6 @@ export default function AuthLayout({
           }
           100% {
             transform: translate(0, 0);
-          }
-        }
-
-        @keyframes floatCard {
-          0% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-8px);
-          }
-          100% {
-            transform: translateY(0px);
           }
         }
 

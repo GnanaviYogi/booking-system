@@ -1,10 +1,20 @@
 "use client";
 
-import { useGetBookingsQuery, useGetRoomsQuery } from "@/services/api";
+import {
+  useGetBookingsQuery,
+  useGetRoomsQuery,
+} from "@/services/api";
+
 import RoomUtilization from "./RoomUtilization";
 
-export default function RoomList({ selectedRoom, onSelectRoom, selectedDate }: any) {
-  const { data: rooms } = useGetRoomsQuery(undefined);
+export default function RoomList({
+  selectedRoom,
+  onSelectRoom,
+  selectedDate,
+}: any) {
+  const { data: rooms } =
+    useGetRoomsQuery(undefined);
+
   const { data: bookingsData } =
     useGetBookingsQuery({
       date: selectedDate,
@@ -15,92 +25,227 @@ export default function RoomList({ selectedRoom, onSelectRoom, selectedDate }: a
   const bookings =
     bookingsData?.data || [];
 
-  const dayOfWeek =
-    new Date(selectedDate).getDay();
+  const dayOfWeek = new Date(
+    selectedDate
+  ).getDay();
 
   const isWeekend =
-    dayOfWeek === 0 || dayOfWeek === 6;
+    dayOfWeek === 0 ||
+    dayOfWeek === 6;
 
   const format = (name: string) =>
-    name.charAt(0).toUpperCase() + name.slice(1);
-
-  const roomColors: any = {
-    Ganga: "#2563eb",
-    Yamuna: "#16a34a",
-    Kaveri: "#7c3aed",
-    Narmada: "#ea580c",
-    Saraswathi: "#0891b2",
-    Brahmaputra: "#dc2626",
-    Godavari: "#4f46e5",
-    Krishna: "#0d9488",
-    Mahanadi: "#ca8a04",
-    Sabarmati: "#c026d3",
-    Tapti: "#65a30d",
-    Indus: "#0284c7",
-    Saraswati: "#9333ea",
-  };
+    name
+      .split(" ")
+      .map(
+        (word) =>
+          word.charAt(0).toUpperCase() +
+          word.slice(1)
+      )
+      .join(" ");
 
   return (
     <div
       style={{
         height: "100%",
         overflowY: "auto",
-        paddingRight: "5px",
+        overflowX: "hidden",
+        paddingRight: "6px",
       }}
+    
     >
-      <h3 style={{ marginBottom: "8px", fontSize: "14px" }}>Rooms</h3>
+      {/* HEADER */}
+
+      <div
+        style={{
+          padding: "18px",
+
+          marginBottom: "16px",
+
+          borderRadius: "20px",
+
+          background:
+            "rgba(255,255,255,.08)",
+
+          backdropFilter:
+            "blur(20px)",
+
+          border:
+            "1px solid rgba(255,255,255,.12)",
+        }}
+      >
+        <div
+          style={{
+            
+            height: "100%",
+            overflowY: "auto",
+            overflowX: "hidden",
+            paddingRight: "6px",
+          }}
+        >
+          Rooms
+        </div>
+
+        <div
+          style={{
+            color:
+              "rgba(255,255,255,.7)",
+
+            fontSize: "13px",
+
+            marginTop: "4px",
+          }}
+        >
+          Select a room to filter
+          bookings
+        </div>
+      </div>
 
       {rooms?.map((room: any) => {
-        const color = roomColors[room.name] || "#ccc";
+        const isSelected =
+          selectedRoom === room.name;
 
         return (
           <div
             key={room.id}
             onClick={() =>
-              onSelectRoom(selectedRoom === room.name ? null : room.name)
+              onSelectRoom(
+                isSelected
+                  ? null
+                  : room.name
+              )
             }
             style={{
-              marginBottom: "6px",
-              padding: "6px 8px",
-              borderRadius: "8px",
+              marginBottom: "14px",
+
+              padding: "18px",
+
               cursor: "pointer",
 
-              // ✅ COLOR ALWAYS VISIBLE
-              background: `${color}15`,
+              borderRadius: "20px",
 
-              // ✅ BORDER ALWAYS COLORED
-              border: `1px solid ${color}`,
+              background: isSelected
+                ? "linear-gradient(135deg,#3B82F6,#8B5CF6)"
+                : "rgba(255,255,255,.08)",
 
-              // ✅ WHEN SELECTED → STRONG HIGHLIGHT
-              ...(selectedRoom === room.name && {
-                background: `${color}35`,
-                border: `2px solid ${color}`,
-                boxShadow: `0 0 6px ${color}66`,
-              }),
+              backdropFilter:
+                "blur(20px)",
 
-              color: selectedRoom === room.name ? color : "inherit",
+              border: isSelected
+                ? "2px solid #60A5FA"
+                : "1px solid rgba(255,255,255,.12)",
 
-              boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
+              transition:
+                "all .3s ease",
+
+              boxShadow: isSelected
+                ? "0 12px 30px rgba(59,130,246,.35)"
+                : "0 8px 20px rgba(0,0,0,.15)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform =
+                "translateY(-3px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform =
+                "translateY(0px)";
             }}
           >
-            <div style={{ fontWeight: "600", fontSize: "12px" }}>
+            {/* ROOM NAME */}
+
+            <div
+              style={{
+                color: "white",
+
+                fontWeight: 700,
+
+                fontSize: "16px",
+
+                marginBottom: "10px",
+              }}
+            >
               {format(room.name)}
             </div>
 
-            <div style={{ fontSize: "10px", color: "#666" }}>
-              {room.capacity} seats available
+            {/* CAPACITY */}
+
+            <div
+              style={{
+                display: "inline-block",
+
+                padding:
+                  "6px 12px",
+
+                borderRadius:
+                  "999px",
+
+                background:
+                  "rgba(255,255,255,.15)",
+
+                color: "white",
+
+                fontSize: "12px",
+
+                marginBottom: "14px",
+              }}
+            >
+              👥 Capacity:{" "}
+              {room.capacity}
             </div>
+
+            {/* UTILIZATION */}
+
             {!isWeekend && (
               <RoomUtilization
                 roomName={room.name}
                 bookings={bookings}
               />
             )}
-         
-            
+
+            {/* SELECTED BADGE */}
+
+            {isSelected && (
+              <div
+                style={{
+                  marginTop: "12px",
+
+                  color: "white",
+
+                  fontSize: "12px",
+
+                  fontWeight: 600,
+                }}
+              >
+                ✓ Selected Room
+              </div>
+            )}
           </div>
         );
       })}
+
+      {rooms?.length === 0 && (
+        <div
+          style={{
+            padding: "30px",
+
+            borderRadius: "20px",
+
+            textAlign: "center",
+
+            background:
+              "rgba(255,255,255,.08)",
+
+            backdropFilter:
+              "blur(20px)",
+
+            border:
+              "1px solid rgba(255,255,255,.12)",
+
+            color: "white",
+          }}
+        >
+          No rooms available
+        </div>
+      )}
     </div>
   );
 }

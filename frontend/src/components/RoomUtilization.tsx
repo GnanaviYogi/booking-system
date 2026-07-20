@@ -16,7 +16,10 @@ export default function RoomUtilization({
 
   const bookedMinutes =
     roomBookings.reduce(
-      (total: number, booking: any) => {
+      (
+        total: number,
+        booking: any
+      ) => {
         const [sh, sm] =
           booking.start_time
             .slice(0, 5)
@@ -38,6 +41,7 @@ export default function RoomUtilization({
       0
     );
 
+  // 10 hours working day
   const utilization = Math.min(
     100,
     Math.round(
@@ -45,41 +49,102 @@ export default function RoomUtilization({
     )
   );
 
-  const color =
-    utilization > 70
-      ? "#ef4444"
-      : utilization > 30
-      ? "#f59e0b"
-      : "#22c55e";
+  const getColor = () => {
+    if (utilization >= 80)
+      return "#EF4444";
+
+    if (utilization >= 50)
+      return "#F59E0B";
+
+    return "#22C55E";
+  };
+
+  const color = getColor();
 
   return (
-    <div style={{ marginTop: 5 }}>
+    <div
+      style={{
+        marginTop: "12px",
+      }}
+    >
       <div
         style={{
-          fontSize: "10px",
-          fontWeight: 600,
-          color,
+          display: "flex",
+          justifyContent:
+            "space-between",
+
+          alignItems: "center",
+
+          marginBottom: "6px",
         }}
       >
-        Utilization {utilization}%
+        <span
+          style={{
+            fontSize: "12px",
+            color:
+              "rgba(255,255,255,.75)",
+          }}
+        >
+          Utilization
+        </span>
+
+        <span
+          style={{
+            fontSize: "12px",
+            fontWeight: 700,
+            color,
+          }}
+        >
+          {utilization}%
+        </span>
       </div>
+
+      {/* Progress Bar */}
 
       <div
         style={{
-          height: 5,
-          background: "#e5e7eb",
-          borderRadius: 999,
+          height: "8px",
+
+          borderRadius: "999px",
+
+          background:
+            "rgba(255,255,255,.12)",
+
           overflow: "hidden",
-          marginTop: 3,
         }}
       >
         <div
           style={{
             width: `${utilization}%`,
+
             height: "100%",
-            background: color,
+
+            borderRadius: "999px",
+
+            background:
+              utilization >= 80
+                ? "linear-gradient(90deg,#EF4444,#F87171)"
+                : utilization >= 50
+                ? "linear-gradient(90deg,#F59E0B,#FBBF24)"
+                : "linear-gradient(90deg,#22C55E,#4ADE80)",
+
+            transition:
+              "width .5s ease",
           }}
         />
+      </div>
+
+      <div
+        style={{
+          marginTop: "8px",
+
+          fontSize: "11px",
+
+          color:
+            "rgba(255,255,255,.65)",
+        }}
+      >
+        {bookedMinutes} mins booked
       </div>
     </div>
   );

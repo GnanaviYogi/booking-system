@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+
 import {
   Box,
   Paper,
@@ -16,6 +17,8 @@ import {
   DialogActions,
 } from "@mui/material";
 
+import { useRouter } from "next/navigation";
+
 import {
   useGetBookingsQuery,
   useGetRoomsQuery,
@@ -24,44 +27,68 @@ import {
 
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+
 import BookingModal from "./BookingModal";
 import FilterBar from "./FilterBar";
-import ScheduleGrid from "./ScheduleGrid";
 
 export default function BookingList({
-  onOpenForm,
   selectedRoom,
   selectedDate,
   setSelectedDate,
 }: any) {
-  const [searchUser, setSearchUser] = useState("");
-  const [filterReason, setFilterReason] = useState("");
-  const [page, setPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [filterRoom, setFilterRoom] = useState("");
-  const [filterDate, setFilterDate] = useState("");
+  const router = useRouter();
 
-  const [viewMode, setViewMode] = useState<
-    "list" | "calendar"
-  >("list");
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] =
+    useState(10);
+
+  const [searchUser, setSearchUser] =
+    useState("");
+
+  const [filterReason, setFilterReason] =
+    useState("");
+
+  const [filterRoom, setFilterRoom] =
+    useState("");
+
+  const [filterDate, setFilterDate] =
+    useState("");
+
+  const [selected, setSelected] =
+    useState<any>(null);
+
+  const [showModal, setShowModal] =
+    useState(false);
+
+  const [confirmOpen, setConfirmOpen] =
+    useState(false);
+
+  const [
+    bookingToDelete,
+    setBookingToDelete,
+  ] = useState<number | null>(null);
 
   const [currentDate, setCurrentDate] =
-    useState(
-      new Date(selectedDate)
-    );
+    useState(new Date(selectedDate));
 
-  const currentDateStr = selectedDate;
-  
-  const dayOfWeek = currentDate.getDay(); // 0=Sun, 6=Sat
-
-  const isWeekend =
-    dayOfWeek === 0 || dayOfWeek === 6;
+  useEffect(() => {
+    setPage(1);
+  }, [
+    searchUser,
+    filterReason,
+    filterRoom,
+    filterDate,
+    selectedRoom,
+    itemsPerPage,
+  ]);
 
   const handlePrevDay = () => {
     const d = new Date(selectedDate);
+
     d.setDate(d.getDate() - 1);
 
     setCurrentDate(d);
+
     setSelectedDate(
       d.toISOString().split("T")[0]
     );
@@ -69,9 +96,11 @@ export default function BookingList({
 
   const handleNextDay = () => {
     const d = new Date(selectedDate);
+
     d.setDate(d.getDate() + 1);
 
     setCurrentDate(d);
+
     setSelectedDate(
       d.toISOString().split("T")[0]
     );
@@ -87,110 +116,52 @@ export default function BookingList({
     );
   };
 
-  
-  const handleEdit = (booking: any) => {
-  setSelected(booking);
-  setShowModal(true);
-};
+  const { data: bookingsData } =
+    useGetBookingsQuery({
+      ...(searchUser && {
+        user_name: searchUser,
+      }),
 
-  const handleDelete = (id: any) => {
-  setBookingToDelete(id);
-  setConfirmOpen(true);
-};
-  
+      ...(selectedRoom && {
+        room_name:
+          filterRoom || selectedRoom,
+      }),
 
-  const times = Array.from(
-  { length: 10 },
-  (_, i) => i + 8
-);
+      ...(filterReason && {
+        reason: filterReason,
+      }),
 
-useEffect(() => {
-  setPage(1);
-}, [
-  searchUser,
-  filterReason,
-  filterRoom,
-  filterDate,
-  selectedRoom,
-  itemsPerPage,
-]);
+      ...(filterDate && {
+        date: filterDate,
+      }),
 
+      ...(!filterDate && {
+        date: selectedDate,
+      }),
 
+      limit: itemsPerPage,
 
+      offset:
+        (page - 1) * itemsPerPage,
+    });
 
+  const bookings =
+    bookingsData?.data || [];
 
-const { data: bookingsData } = useGetBookingsQuery({
-  ...(searchUser && {
-    user_name: searchUser,
-  }),
+  const total =
+    bookingsData?.total || 0;
 
-  ...(selectedRoom && {
-    room_name: filterRoom || selectedRoom,
-  }),
+  const totalPages = Math.max(
+    1,
+    Math.ceil(total / itemsPerPage)
+  );
 
-  
- ...(filterReason && {
-    reason: filterReason,
-  }),
+  const { data: rooms = [] } =
+    useGetRoomsQuery(undefined);
 
-  ...(filterDate && {
-    date: filterDate,
-  }),
+  const [deleteBooking] =
+    useDeleteBookingMutation();
 
-  ...(!filterDate && {
-    date: currentDateStr,
-  }),
-
-
-  
-  date: currentDateStr,
-
-  limit:
-    viewMode === "calendar"
-      ? 5000
-      : itemsPerPage,
-
-  offset:
-    viewMode === "calendar"
-      ? 0
-      : (page - 1) * itemsPerPage,
-});
-
-const bookings = isWeekend
-  ? []
-  : bookingsData?.data ?? [];
-const total = isWeekend
-  ? 0
-  : bookingsData?.total || 0;
-
-  console.table(
-  bookings.map((b: any) => ({
-    user: b.user_name,
-    start: b.start_time,
-    end: b.end_time,
-  }))
-);
-
-
-const { data: rooms = [] } =
-  useGetRoomsQuery(undefined);
-
-const [deleteBooking] =
-  useDeleteBookingMutation();
-
-
-  const [selected, setSelected] =
-    useState<any>(null);
-
-  const [showModal, setShowModal] =
-    useState(false);
-
-  const [confirmOpen, setConfirmOpen] =
-    useState(false);
-
-  const [bookingToDelete, setBookingToDelete] =
-    useState<number | null>(null);
-    
   const roomColors: any = {
     Ganga: "#2563eb",
     Yamuna: "#16a34a",
@@ -207,265 +178,235 @@ const [deleteBooking] =
     Saraswati: "#9333ea",
   };
 
-
-
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(total / itemsPerPage)
-  );
-
   return (
-    <Box
-      sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <Box>
       {/* HEADER */}
 
       <Paper
         sx={{
-          p: 1.5,
-          mb: 1,
-          borderRadius: 3,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 2,
+          p: 3,
+          height:"100%",
+          flexDirection: "column",
+
+          borderRadius: "24px",
+
           background:
-            "linear-gradient(135deg,#1e3c72,#2a5298)",
+            "rgba(255,255,255,.08)",
+
+          backdropFilter:
+            "blur(20px)",
+
+          border:
+            "1px solid rgba(255,255,255,.12)",
+
+          boxShadow:
+            "0 20px 40px rgba(0,0,0,.25)",
+
           color: "white",
         }}
       >
-        <Typography
-          sx={{
-            fontSize: 18,
-            fontWeight: 600,
-          }}
-        >
-          {selectedRoom
-            ? `${selectedRoom} Room Bookings`
-            : "All Bookings"}
-        </Typography>
-
         <Box
+
           display="flex"
-          gap={2}
+          justifyContent="space-between"
           alignItems="center"
           flexWrap="wrap"
+          gap={2}
         >
-          <Button
-            
-            
-            sx={{
-              color: "white",
-              textTransform: "none",
-            }}
-
-            onClick={handlePrevDay}
+          <Typography
+            fontSize={20}
+            fontWeight={700}
           >
-            Prev
-          </Button>
-
-          <Typography>
-            {currentDate.toDateString()}
+            {selectedRoom
+              ? `${selectedRoom} Room Bookings`
+              : "All Bookings"}
           </Typography>
 
-          <TextField
-            type="date"
-            size="small"
-            value={currentDateStr}
-            onChange={(e) => {
-              setCurrentDate(
-                new Date(e.target.value)
-              );
-
-              setSelectedDate(
-                e.target.value
-              );
-            }}
-            sx={{
-              bgcolor: "white",
-              borderRadius: 1,
-            }}
-          />
-
-          <Button
-            
-            sx={{
-              color: "white",
-              textTransform: "none",
-            }}
-            onClick={handleToday}
+          <Box
+            display="flex"
+            gap={1}
+            alignItems="center"
+            flexWrap="wrap"
           >
-            Today
-          </Button>
+            <Button
+              variant="outlined"
+              onClick={handlePrevDay}
+            >
+              ◀ Prev
+            </Button>
 
-          <Button
-            
-            sx={{
-              color: "white",
-              textTransform: "none",
-            }} 
-            onClick={handleNextDay}
-          >
-            Next
-          </Button>
+            <Typography>
+              {currentDate.toDateString()}
+            </Typography>
 
-          <Button
-            sx={{
-              color: "white",
-              textTransform: "none",
-            }}
-            variant="contained"
-            onClick={onOpenForm}
-          >
-            Book Form
-          </Button>
+            <TextField
+              type="date"
+              size="small"
+              value={selectedDate}
+              onChange={(e) =>
+                setSelectedDate(
+                  e.target.value
+                )
+              }
+            />
 
-          <Button
-      
-            sx={{
-              color: "white",
-              textTransform: "none",
-            }}
+            <Button
+              variant="contained"
+              onClick={handleToday}
+            >
+              Today
+            </Button>
+
+            <Button
+              variant="outlined"
+              onClick={handleNextDay}
+            >
+              Next ▶
+            </Button>
+
+            <Button
+              variant="contained"
               onClick={() =>
-              setViewMode(
-                viewMode === "list"
-                  ? "calendar"
-                  : "list"
-              )
-            }
-          >
-            {viewMode === "list"
-              ? "Calendar View"
-              : "List View"}
-          </Button>
+                router.push("/booking")
+              }
+            >
+              ➕ New Booking
+            </Button>
+          </Box>
         </Box>
       </Paper>
 
       {/* FILTERS */}
 
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <FilterBar
-          searchUser={searchUser}
-          setSearchUser={setSearchUser}
-          filterRoom={filterRoom}
-          setFilterRoom={setFilterRoom}
-          filterDate={filterDate}
-          setFilterDate={setFilterDate}
-          reason={filterReason}
-          setReason={setFilterReason}
-          rooms={rooms}
-        />
-        </Paper>
+      <FilterBar
+        searchUser={searchUser}
+        setSearchUser={setSearchUser}
+        filterRoom={filterRoom}
+        setFilterRoom={setFilterRoom}
+        filterDate={filterDate}
+        setFilterDate={setFilterDate}
+        reason={filterReason}
+        setReason={setFilterReason}
+        rooms={rooms}
+      />
 
+      {/* TABLE */}
 
-        {isWeekend && (
+      
+
       <Paper
         sx={{
           p: 3,
-          textAlign: "center",
-          bgcolor: "#fff8e1",
-          mb: 2,
+          
+          height: "100%",
+
+          overflowY: "auto",
+
+          background:
+            "rgba(255,255,255,.08)",
+
+          backdropFilter:
+            "blur(20px)",
+
+          border:
+            "1px solid rgba(255,255,255,.12)",
+          
+          borderRadius: "24px",
+
+          color: "white",
+
+
+                
         }}
       >
-        <Typography variant="h6">
-          No bookings on weekends
-        </Typography>
-
-        <Typography>
-          Saturday and Sunday are non-working days.
-        </Typography>
-      </Paper>
-    )}
-
-      {/* LIST VIEW */}
-
-      {viewMode === "list" && (
         <Box
           sx={{
-            flex: 1,
-            overflowY: "auto",
-            px: 2,
+            overflowX: "auto",
+            overflowY: "hidden",
+            width: "100%",
+
           }}
         >
-          <Paper sx={{ p: 2 }}>
-            {/* rows */}
-
           <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns:
-                "2fr 1.5fr 2fr 1fr 1fr",
-              p: 1.5,
-              mb: 1,
-              bgcolor: "#e2e8f0",
-              borderRadius: 1,
-              fontWeight: 700,
-            }}
-          >
-            <Typography fontWeight={700}>
-              Room Name
-            </Typography>
+           sx={{
+            minWidth: "1200px",
+           }}
+        ></Box>
 
-            <Typography fontWeight={700}>
-              User Name
-            </Typography>
+        </Box>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns:
+              "220px 220px 220px 180px 220px",
 
-            <Typography fontWeight={700}>
-              Booking Time
-            </Typography>
+            p: 2,
 
-            <Typography fontWeight={700}>
-              Reason
-            </Typography>
+            mb: 2,
 
-            <Typography fontWeight={700}>
-              Actions
-            </Typography>
-          </Box>
 
-           {bookings.map((b: any) => (
+            borderRadius: "16px",
+
+            background:
+              "rgba(255,255,255,.05)",
+          }}
+        >
+          <Typography fontWeight={700}>
+            Room
+          </Typography>
+
+          <Typography fontWeight={700}>
+            User
+          </Typography>
+
+          <Typography fontWeight={700}>
+            Time
+          </Typography>
+
+          <Typography fontWeight={700}>
+            Reason
+          </Typography>
+
+          <Typography fontWeight={700}>
+            Actions
+          </Typography>
+        </Box>
+        
+
+        {bookings.map((b: any) => (
           <Box
             key={b.id}
             sx={{
               display: "grid",
               gridTemplateColumns:
-                "2fr 1.5fr 2fr 1fr 1fr",
+                "220px 220px 220px 180px 220px",
 
               alignItems: "center",
-              p: 1,
-              mb: 0.5,
+
+              p: 2,
+
+              mb: 1.5,
+
+              borderRadius: "16px",
 
               background:
-                `${roomColors[b.room_name] || "#ccc"}12`,
+                "rgba(255,255,255,.04)",
 
-              borderLeft:
-                `6px solid ${
-                  roomColors[b.room_name] || "#ccc"
-                }`,
+              border:
+                "1px solid rgba(255,255,255,.08)",
 
-              borderRadius: 1,
-
-              transition: "0.2s",
-
-              "&:hover": {
-                background:
-                  `${roomColors[b.room_name] || "#ccc"}08`,
-              },
+              borderLeft: `6px solid ${
+                roomColors[b.room_name] ||
+                "#ccc"
+              }`,
             }}
           >
+            
             <Typography
-              sx={{
-                fontWeight: 600,
-                color:
-                  roomColors[b.room_name] ||
-                  "inherit",
-              }}
+              fontWeight={700}
+              color={
+                roomColors[b.room_name]
+              }
             >
               {b.room_name}
             </Typography>
@@ -475,155 +416,137 @@ const [deleteBooking] =
             </Typography>
 
             <Typography>
-          {new Date(
-            `1970-01-01T${b.start_time}`
-          ).toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          })}
-          {" - "}
-          {new Date(
-            `1970-01-01T${b.end_time}`
-          ).toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          })}
-        </Typography>
+              {b.start_time} -{" "}
+              {b.end_time}
+            </Typography>
 
-
-        <Typography>
-          {b.reason}
-        </Typography>
-
-        <Box display="flex" gap={2}>
-          <Button
-            size="small"
-            startIcon={<EditIcon />}
-            onClick={() => handleEdit(b)}
-            sx={{
-              textTransform: "none",
-              minWidth: "70px",
-            }}
-          >
-            Edit
-          </Button>
-
-          <Button
-            size="small"
-            variant="outlined"
-            color="error"
-            startIcon={<DeleteIcon />}
-            onClick={() => handleDelete(b.id)}
-            sx={{
-              textTransform: "none",
-              minWidth: "80px",
-            }}
-          >
-            Delete
-          </Button>
-
-        </Box>
-      </Box>
-    ))}
-            {/* PAGINATION */}
+            <Typography>
+              {b.reason}
+            </Typography>
 
             <Box
-              sx={{
-                mt: 3,
-                display: "flex",
-                justifyContent:
-                  "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: 2,
-              }}
+              display="flex"
+              gap={1}
             >
-              <Box
-                display="flex"
-                alignItems="center"
-                gap={2}
-              >
-                <Typography>
-                  Per page
-                </Typography>
-
-                <Select
-                  size="small"
-                  value={itemsPerPage}
-                  onChange={(e) => {
-                    setItemsPerPage(
-                      Number(e.target.value)
-                    );
-                    setPage(1);
-                  }}
-                >
-                  <MenuItem value={10}>
-                    10
-                  </MenuItem>
-                  <MenuItem value={20}>
-                    20
-                  </MenuItem>
-                  <MenuItem value={50}>
-                    50
-                  </MenuItem>
-                </Select>
-
-                <Typography>
-                  {total === 0
-                    ? "0-0"
-                    : `${(page - 1) *
-                        itemsPerPage +
-                        1}-${Math.min(
-                        page *
-                          itemsPerPage,
-                        total
-                      )}`}
-                  {" "}of {total}
-                </Typography>
-              </Box>
-
-              <Pagination
-                page={page}
-                count={totalPages}
-                color="primary"
-                onChange={(_, value) =>
-                  setPage(value)
+              <Button
+                variant="contained"
+                startIcon={
+                  <EditIcon />
                 }
-                showFirstButton
-                showLastButton
-              />
+                onClick={() => {
+                  setSelected(b);
+                  setShowModal(true);
+                }}
+              >
+                Edit
+              </Button>
+
+              <Button
+                variant="contained"
+                color="error"
+                startIcon={
+                  <DeleteIcon />
+                }
+                onClick={() => {
+                  setBookingToDelete(
+                    b.id
+                  );
+                  setConfirmOpen(true);
+                }}
+              >
+                Delete
+              </Button>
             </Box>
-          </Paper>
-        </Box>
-      )}
-
-      {/* CALENDAR VIEW */}
-
-      {viewMode === "calendar" && (
+          </Box>
+        ))}
+        
         <Box
           sx={{
-            flex: 1,
-            overflow: "auto",
-            px: 2,
+            mt: 2,
+            pt: 2,
+            borderTop:
+               "1px solid rgba(255,255,255,.1)",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            position: "sticky",
+            bottom: 0,
+            background:
+               "rgba(15,23,42,.95)",
+            zIndex: 10,
           }}
+        
         >
-          <ScheduleGrid
-            rooms={rooms}
-            bookings={bookings}
-            times={times}
-            currentDateStr={currentDateStr}
-            onEdit={(booking: any) => {
-              handleEdit(booking);
-            }}
-            onDelete={(id: any) => {
-              handleDelete(id);
-            }}
-          />
+          <Select
+            size="small"
+            value={itemsPerPage}
+            onChange={(e) =>
+              setItemsPerPage(
+                Number(
+                  e.target.value
+                )
+              )
+            }
+          >
+            <MenuItem value={10}>
+              10
+            </MenuItem>
 
+            <MenuItem value={20}>
+              20
+            </MenuItem>
+
+            <MenuItem value={50}>
+              50
+            </MenuItem>
+          </Select>
+
+          <Pagination
+  page={page}
+  count={totalPages}
+  showFirstButton
+  showLastButton
+  onChange={(_, value) =>
+    setPage(value)
+  }
+  sx={{
+    "& .MuiPaginationItem-root": {
+      color: "white",
+      border:
+        "1px solid rgba(255,255,255,.12)",
+
+      background:
+        "rgba(255,255,255,.05)",
+
+      backdropFilter:
+        "blur(20px)",
+
+      transition: "all .3s ease",
+
+      "&:hover": {
+        background:
+          "rgba(255,255,255,.12)",
+
+        transform:
+          "translateY(-2px)",
+      },
+    },
+
+    "& .Mui-selected": {
+      background:
+        "linear-gradient(135deg,#3B82F6,#8B5CF6) !important",
+
+      color: "white",
+
+      fontWeight: 700,
+
+      boxShadow:
+        "0 8px 20px rgba(59,130,246,.4)",
+    },
+  }}
+/>
         </Box>
-      )}
+      </Paper>
 
       <BookingModal
         open={showModal}
@@ -659,7 +582,10 @@ const [deleteBooking] =
           <Button
             color="error"
             onClick={async () => {
-              if (bookingToDelete !== null) {
+              if (
+                bookingToDelete !==
+                null
+              ) {
                 await deleteBooking(
                   bookingToDelete
                 ).unwrap();
