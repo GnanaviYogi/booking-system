@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends
 from fastapi_jwt_auth import AuthJWT
 
+from app.core.dependencies import get_current_user
+
 from app.schemas.auth import (
     RegisterSchema,
     LoginSchema,
@@ -82,3 +84,22 @@ def refresh(
 @router.post("/logout")
 def logout():
     return {"message": "Logged out ✅"}
+
+
+@router.get("/me")
+def get_me(
+    current_user=Depends(get_current_user),
+):
+    permissions = {
+        permission.name
+        for role in current_user.roles
+        for permission in role.permissions
+    }
+
+    return {
+        "id": current_user.id,
+        "username": current_user.username,
+        "email": current_user.email,
+        "roles": [role.name for role in current_user.roles],
+        "permissions": list(permissions),
+    }

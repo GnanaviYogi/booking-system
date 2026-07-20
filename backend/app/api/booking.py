@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from app.core.rbac import require_permission
 
 from app.db.database import get_db
 from app.schemas.booking import (
@@ -29,9 +30,8 @@ router = APIRouter(prefix="/bookings", tags=["Bookings"])
 def create_booking(
     data: BookingCreate,
     db: Session = Depends(get_db),
-    Authorize: AuthJWT = Depends(),
+    current_user=Depends(require_permission("booking:create")),
 ):
-    Authorize.jwt_required()
 
     try:
         return create_booking_service(db, data)
@@ -54,9 +54,8 @@ def get_bookings(
     limit: int = 10,
     offset: int = 0,
     db: Session = Depends(get_db),
-    Authorize: AuthJWT = Depends(),
+    current_user=Depends(require_permission("booking:view")),
 ):
-    Authorize.jwt_required()
 
     try:
         return get_bookings_service(
@@ -82,19 +81,24 @@ def get_bookings(
 def delete_booking(
     booking_id: int,
     db: Session = Depends(get_db),
-    Authorize: AuthJWT = Depends(),
+    current_user=Depends(require_permission("booking:delete")),
 ):
-    Authorize.jwt_required()
-
     try:
-        return delete_booking_service(db, booking_id)
+        return delete_booking_service(
+            db,
+            booking_id,
+        )
 
     except HTTPException as e:
         raise e
 
     except Exception as e:
         print("❌ DELETE ERROR:", e)
-        raise HTTPException(status_code=500, detail="Unexpected error occurred")
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unexpected error occurred",
+        )
 
 
 # ✅ UPDATE BOOKING
@@ -105,9 +109,8 @@ def update_booking(
     booking_id: int,
     data: BookingUpdate,
     db: Session = Depends(get_db),
-    Authorize: AuthJWT = Depends(),
+    current_user=Depends(require_permission("booking:update")),
 ):
-    Authorize.jwt_required()
 
     try:
         return update_booking_service(db, booking_id, data)

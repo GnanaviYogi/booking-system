@@ -1,6 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from app.db.database import SessionLocal
 from app.models.user import User
+
+from app.core.rbac import require_permission
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -11,7 +13,9 @@ from app.schemas.user import UserResponse
 
 
 @router.get("/", response_model=List[UserResponse])
-def get_users():
+def get_users(
+    current_user=Depends(require_permission("user:view")),
+):
     db = SessionLocal()
     users = db.query(User).all()
     db.close()
@@ -21,7 +25,9 @@ def get_users():
 
 # ✅ GET REGISTERED USERS (same as all users here)
 @router.get("/registers", response_model=dict[str, List[UserResponse]])
-def get_registered_users():
+def get_registered_users(
+    current_user=Depends(require_permission("user:view")),
+):
     db = SessionLocal()
     users = db.query(User).all()
     db.close()
@@ -31,13 +37,18 @@ def get_registered_users():
 
 # ✅ GET LOGIN LOGS (if stored separately later)
 @router.get("/logins")
-def get_login_logs():
+def get_login_logs(
+    current_user=Depends(require_permission("user:view")),
+):
     return {"logins": "Implement login logs later ✅"}
 
 
 # ✅ DELETE USER
 @router.delete("/{user_id}")
-def delete_user(user_id: int):
+def delete_user(
+    user_id: int,
+    current_user=Depends(require_permission("user:delete")),
+):
     db = SessionLocal()
 
     user = db.query(User).filter(User.id == user_id).first()
@@ -45,6 +56,10 @@ def delete_user(user_id: int):
     if not user:
         db.close()
         return {"message": "User not found"}
+
+    if user.id == current_user.id:
+        db.close()
+        return {"message": "You cannot delete your own account"}
 
     db.delete(user)
     db.commit()

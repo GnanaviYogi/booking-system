@@ -7,6 +7,8 @@ from app.schemas.room import RoomResponse
 from app.services.room import get_rooms_service
 from app.models.room import Room
 from app.models.booking import Booking
+from app.core.rbac import require_permission
+
 
 import json
 from app.core.redis_client import redis_client
@@ -16,7 +18,10 @@ router = APIRouter(prefix="/rooms", tags=["Rooms"])
 
 # ✅ GET ALL ROOMS (no caching here for now)
 @router.get("/", response_model=list[RoomResponse])
-def get_rooms(db: Session = Depends(get_db)):
+def get_rooms(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_permission("room:view")),
+):
     return get_rooms_service(db)
 
 
@@ -27,6 +32,7 @@ def check_availability(
     end_time: str = Query(...),
     required_capacity: int = Query(..., gt=0, lt=100),
     db: Session = Depends(get_db),
+    current_user=Depends(require_permission("room:view")),
 ):
     # ✅ Create cache key (inside function )
     cache_key = f"availability:{start_time}:{end_time}:{required_capacity}"
