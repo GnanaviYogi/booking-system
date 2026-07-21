@@ -5,6 +5,7 @@ import { useState } from "react";
 import AppLayout from "@/components/layouts/AppLayout";
 import RoomList from "@/components/RoomList";
 import BookingList from "@/components/BookingList";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function ListPage() {
   const [selectedRoom, setSelectedRoom] =
@@ -18,80 +19,74 @@ export default function ListPage() {
     );
 
   return (
-    <AppLayout>
-      <div
-        style={{
-          marginBottom: "20px",
-        }}
-      >
-        <h1
+    <ProtectedRoute permission="booking:view">
+      <AppLayout>
+        <div
           style={{
-            color: "white",
-            margin: 0,
+            marginBottom: "20px",
           }}
         >
-          📋 Booking Management
-        </h1>
+          <h1
+            style={{
+              color: "white",
+              margin: 0,
+            }}
+          >
+            📋 Booking Management
+          </h1>
 
-        <p
-          style={{
-            color: "rgba(255,255,255,.7)",
-            marginTop: "8px",
-          }}
-        >
-          View and manage room reservations
-        </p>
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "320px 1fr",
-          gap: "20px",
-
-          height: "calc(100vh - 180px)",
-        }}
-      >
-        {/* ROOM LIST */}
+          <p
+            style={{
+              color: "rgba(255,255,255,.7)",
+              marginTop: "8px",
+            }}
+          >
+            View and manage room reservations
+          </p>
+        </div>
 
         <div
           style={{
-            height: "100%",
-
-            overflowY: "auto",
-            overflowX: "hidden",
-
-            paddingRight: "8px",
+            display: "grid",
+            gridTemplateColumns: "320px 1fr",
+            gap: "20px",
+            height: "calc(100vh - 180px)",
           }}
         >
-          <RoomList
-            selectedRoom={selectedRoom}
-            onSelectRoom={setSelectedRoom}
-            selectedDate={selectedDate}
-          />
+          {/* ROOM LIST */}
+          <div
+            style={{
+              height: "100%",
+              overflowY: "auto",
+              overflowX: "hidden",
+              paddingRight: "8px",
+            }}
+          >
+            <RoomList
+              selectedRoom={selectedRoom}
+              onSelectRoom={setSelectedRoom}
+              selectedDate={selectedDate}
+            />
+          </div>
+
+          {/* BOOKING LIST */}
+          <div
+            style={{
+              height: "100%",
+              overflowY: "auto",
+              overflowX: "hidden",
+              minWidth: 0,
+              paddingRight: "8px",
+            }}
+          >
+            <BookingList
+              selectedRoom={selectedRoom}
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+            />
+          </div>
         </div>
-
-        {/* BOOKING LIST */}
-
-        <div
-          style={{
-            height: "100%",
-
-            overflowY: "auto",
-            overflowX: "hidden",
-
-            minWidth: 0,
-
-            paddingRight: "8px",
-          }}
-        >
-          <BookingList
-            selectedRoom={selectedRoom}
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-          />
-        </div>
-      </div>
-    </AppLayout>
+      </AppLayout>
+    </ProtectedRoute>
   );
 }

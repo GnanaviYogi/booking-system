@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 import {
   Box,
@@ -36,6 +37,7 @@ export default function BookingList({
   selectedDate,
   setSelectedDate,
 }: any) {
+  const { hasPermission } = useAuth();
   const router = useRouter();
 
   const [page, setPage] = useState(1);
@@ -264,14 +266,17 @@ export default function BookingList({
               Next ▶
             </Button>
 
-            <Button
-              variant="contained"
-              onClick={() =>
-                router.push("/booking")
-              }
-            >
-              ➕ New Booking
-            </Button>
+            {hasPermission("booking:create") && (
+              <Button
+                variant="contained"
+                onClick={() =>
+                  router.push("/booking")
+                }
+              >
+                ➕ New Booking
+              </Button>
+            )}
+
           </Box>
         </Box>
       </Paper>
@@ -428,34 +433,32 @@ export default function BookingList({
               display="flex"
               gap={1}
             >
-              <Button
-                variant="contained"
-                startIcon={
-                  <EditIcon />
-                }
-                onClick={() => {
-                  setSelected(b);
-                  setShowModal(true);
-                }}
-              >
-                Edit
-              </Button>
+              {hasPermission("booking:update") && (
+                <Button
+                  variant="contained"
+                  startIcon={<EditIcon />}
+                  onClick={() => {
+                    setSelected(b);
+                    setShowModal(true);
+                  }}
+                >
+                  Edit
+                </Button>
+              )}
 
-              <Button
-                variant="contained"
-                color="error"
-                startIcon={
-                  <DeleteIcon />
-                }
-                onClick={() => {
-                  setBookingToDelete(
-                    b.id
-                  );
-                  setConfirmOpen(true);
-                }}
-              >
-                Delete
-              </Button>
+              {hasPermission("booking:delete") && (
+                <Button
+                  variant="contained"
+                  color="error"
+                  startIcon={<DeleteIcon />}
+                  onClick={() => {
+                    setBookingToDelete(b.id);
+                    setConfirmOpen(true);
+                  }}
+                >
+                  Delete
+                </Button>
+              )}
             </Box>
           </Box>
         ))}

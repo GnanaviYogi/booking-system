@@ -1,39 +1,43 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-
+import { useAuth } from "@/hooks/useAuth";
 export default function DashboardCards() {
   const router = useRouter();
+  const { hasPermission } = useAuth();
 
-  const cards = [
-    {
-      icon: "📋",
-      title: "Booking Management",
-      description:
-        "View, search and manage all room reservations.",
-      route: "/list",
-      gradient:
-        "linear-gradient(135deg,#3B82F6,#2563EB)",
-    },
-    {
-      icon: "📅",
-      title: "Schedule Planner",
-      description:
-        "Visual calendar view for room schedules.",
-      route: "/calendar",
-      gradient:
-        "linear-gradient(135deg,#8B5CF6,#7C3AED)",
-    },
-    {
-      icon: "➕",
-      title: "Reserve Room",
-      description:
-        "Create a new meeting room booking.",
-      route: "/booking",
-      gradient:
-        "linear-gradient(135deg,#06B6D4,#0891B2)",
-    },
-  ];
+ const cards = [
+  {
+    icon: "📋",
+    title: "Booking Management",
+    description:
+      "View, search and manage all room reservations.",
+    route: "/list",
+    gradient:
+      "linear-gradient(135deg,#3B82F6,#2563EB)",
+    visible: hasPermission("booking:view"),
+  },
+  {
+    icon: "📅",
+    title: "Schedule Planner",
+    description:
+      "Visual calendar view for room schedules.",
+    route: "/calendar",
+    gradient:
+      "linear-gradient(135deg,#8B5CF6,#7C3AED)",
+    visible: hasPermission("booking:view"),
+  },
+  {
+    icon: "➕",
+    title: "Reserve Room",
+    description:
+      "Create a new meeting room booking.",
+    route: "/booking",
+    gradient:
+      "linear-gradient(135deg,#06B6D4,#0891B2)",
+    visible: hasPermission("booking:create"),
+  },
+].filter((card) => card.visible);
 
   return (
     <div

@@ -2,29 +2,39 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import UserMenu from "./UserMenu";
+import { hasPermission } from "@/utils/permissions";
 
 export default function AppHeader() {
   const router = useRouter();
   const pathname = usePathname();
 
   const navItems = [
-    {
-      label: "Dashboard",
-      path: "/",
-    },
-    {
-      label: "Bookings",
-      path: "/list",
-    },
-    {
-      label: "Calendar",
-      path: "/calendar",
-    },
-    {
-      label: "Reserve Room",
-      path: "/booking",
-    },
-  ];
+  {
+    label: "Dashboard",
+    path: "/",
+    visible: true,
+  },
+  {
+    label: "Bookings",
+    path: "/list",
+    visible: hasPermission("booking:view"),
+  },
+  {
+    label: "Calendar",
+    path: "/calendar",
+    visible: hasPermission("booking:view"),
+  },
+  {
+    label: "Reserve Room",
+    path: "/booking",
+    visible: hasPermission("booking:create"),
+  },
+  {
+    label: "Users",
+    path: "/users",
+    visible: hasPermission("user:view"),
+  },
+].filter((item) => item.visible);
 
   return (
     <div
@@ -101,14 +111,14 @@ export default function AppHeader() {
         ))}
       </div>
 
-      <UserMenu
-        userEmail={
-          typeof window !== "undefined"
-            ? localStorage.getItem("user") ||
-              "User"
-            : "User"
-        }
-      />
+     <UserMenu
+  userEmail={
+    typeof window !== "undefined"
+      ? localStorage.getItem("user") || "User"
+      : "User"
+  }
+/>
+
     </div>
   );
 }

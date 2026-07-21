@@ -141,10 +141,12 @@ export default function LandingPage() {
             borderRadius: "50%",
             background: "white",
             opacity: 0.5,
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
+
+            left: `${(i * 7) % 100}%`,
+            top: `${(i * 13) % 100}%`,
+
             animation: `star ${
-              4 + Math.random() * 6
+              4 + (i % 6)
             }s linear infinite`,
           }}
         />

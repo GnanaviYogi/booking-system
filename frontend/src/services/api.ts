@@ -141,6 +141,33 @@ export const api = createApi({
       }),
     }),
 
+    // GET CURRENT USER
+    getMe: builder.query({
+      query: () => ({
+        url: "auth/me",
+      }),
+    }),
+
+
+        // GET USERS
+    getUsers: builder.query({
+      query: () => ({
+        url: "users/",
+      }),
+    }),
+
+    // DELETE USER
+    deleteUser: builder.mutation({
+      query: (userId) => ({
+        url: `users/${userId}`,
+        method: "DELETE",
+      }),
+    }),
+
+
+
+
+
     // AVAILABILITY
     getAvailability: builder.query({
       query: ({
@@ -210,4 +237,7 @@ export const {
   useDeleteBookingMutation,
   useRegisterMutation,
   useLoginMutation,
+  useGetMeQuery,
+  useGetUsersQuery,
+  useDeleteUserMutation,
 } = api;

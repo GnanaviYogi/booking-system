@@ -81,14 +81,14 @@ export default function AuthLayout({
             borderRadius: "50%",
             background: "#fff",
             opacity: 0.4,
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            animation: `star ${
-              5 + Math.random() * 6
-            }s linear infinite`,
+            left: `${(i * 7) % 100}%`,
+            top: `${(i * 13) % 100}%`,
+            animation: `star ${5 + (i % 6)}s linear infinite`,
           }}
         />
       ))}
+
+
 
       {/* Login Card */}
 

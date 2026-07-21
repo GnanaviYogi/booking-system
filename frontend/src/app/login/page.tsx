@@ -164,12 +164,33 @@ export default function LoginPage() {
         res.refresh_token
       );
 
-      localStorage.setItem(
-        "user",
-        username || email
-      );
+     const meResponse = await fetch(
+      "http://127.0.0.1:8000/api/v1/auth/me",
+      {
+        headers: {
+          Authorization: `Bearer ${res.access_token}`,
+        },
+      }
+    );
 
-      router.push("/?login=1");
+    const me = await meResponse.json();
+
+    localStorage.setItem(
+  "user",
+  me.email
+);
+
+localStorage.setItem(
+  "roles",
+  JSON.stringify(me.roles)
+);
+
+localStorage.setItem(
+  "permissions",
+  JSON.stringify(me.permissions)
+);
+
+    router.push("/?login=1");
     } catch (err: any) {
       setMessage(
         err?.data?.detail ??
