@@ -2,53 +2,61 @@
 
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+
 export default function DashboardCards() {
   const router = useRouter();
+
   const { hasPermission } = useAuth();
 
- const cards = [
-  {
-    icon: "📋",
-    title: "Booking Management",
-    description:
-      "View, search and manage all room reservations.",
-    route: "/list",
-    gradient:
-      "linear-gradient(135deg,#3B82F6,#2563EB)",
-    visible: hasPermission("booking:view"),
-  },
-  {
-    icon: "📅",
-    title: "Schedule Planner",
-    description:
-      "Visual calendar view for room schedules.",
-    route: "/calendar",
-    gradient:
-      "linear-gradient(135deg,#8B5CF6,#7C3AED)",
-    visible: hasPermission("booking:view"),
-  },
-  {
-    icon: "➕",
-    title: "Reserve Room",
-    description:
-      "Create a new meeting room booking.",
-    route: "/booking",
-    gradient:
-      "linear-gradient(135deg,#06B6D4,#0891B2)",
-    visible: hasPermission("booking:create"),
-  },
-].filter((card) => card.visible);
+  const cards = [
+    {
+      icon: "📋",
+      title: "Bookings",
+      description: "Manage room reservations",
+      route: "/list",
+      color: "#3B82F6",
+      gradient:
+        "linear-gradient(135deg,#60A5FA,#2563EB)",
+      visible: hasPermission("booking:view"),
+    },
+
+    {
+      icon: "📅",
+      title: "Calendar",
+      description: "View schedules",
+      route: "/calendar",
+      color: "#8B5CF6",
+      gradient:
+        "linear-gradient(135deg,#A78BFA,#7C3AED)",
+      visible: hasPermission("booking:view"),
+    },
+
+    {
+      icon: "➕",
+      title: "Reserve",
+      description: "Create a booking",
+      route: "/booking",
+      color: "#06B6D4",
+      gradient:
+        "linear-gradient(135deg,#22D3EE,#0891B2)",
+      visible: hasPermission("booking:create"),
+    },
+  ].filter((card) => card.visible);
 
   return (
     <div
       style={{
-        display: "grid",
-        gridTemplateColumns:
-          "repeat(auto-fit,minmax(320px,1fr))",
-        gap: "24px",
-        marginTop: "50px",
         width: "100%",
-        maxWidth: "1200px",
+        maxWidth: "950px",
+
+        display: "grid",
+
+        gridTemplateColumns:
+          "repeat(auto-fit,minmax(260px,1fr))",
+
+        gap: "20px",
+
+        marginTop: "28px",
       }}
     >
       {cards.map((card) => (
@@ -60,45 +68,97 @@ export default function DashboardCards() {
           style={{
             cursor: "pointer",
 
-            padding: "32px",
+            position: "relative",
+
+            overflow: "hidden",
+
+            padding: "22px",
+
+            minHeight: "190px",
 
             borderRadius: "28px",
 
             background:
-              "rgba(255,255,255,.08)",
+              "linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.03))",
 
-            backdropFilter:
-              "blur(20px)",
+            backdropFilter: "blur(24px)",
 
             border:
               "1px solid rgba(255,255,255,.12)",
 
-            minHeight: "260px",
+            transition:
+              "all .35s ease",
 
             display: "flex",
             flexDirection: "column",
-            justifyContent: "space-between",
-
-            transition:
-              "all .3s ease",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform =
-              "translateY(-8px)";
+              "translateY(-8px) scale(1.02)";
+
             e.currentTarget.style.boxShadow =
-              "0 25px 50px rgba(59,130,246,.25)";
+              `0 20px 50px ${card.color}40`;
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform =
               "translateY(0)";
+
             e.currentTarget.style.boxShadow =
               "none";
           }}
         >
+          {/* Glow */}
           <div
             style={{
-              width: "72px",
-              height: "72px",
+              position: "absolute",
+              width: "180px",
+              height: "180px",
+
+              borderRadius: "50%",
+
+              background: card.color,
+
+              opacity: 0.12,
+
+              filter: "blur(60px)",
+
+              top: -60,
+              right: -60,
+            }}
+          />
+
+          {/* Badge */}
+          <div
+            style={{
+              position: "absolute",
+              top: 18,
+              right: 18,
+
+              padding: "6px 12px",
+
+              borderRadius: "999px",
+
+              fontSize: "11px",
+
+              fontWeight: 600,
+
+              color: "#93C5FD",
+
+              background:
+                "rgba(255,255,255,.08)",
+
+              border:
+                "1px solid rgba(255,255,255,.1)",
+            }}
+          >
+            Quick Access
+          </div>
+
+          {/* Icon */}
+          <div
+            style={{
+              width: "64px",
+              height: "64px",
 
               borderRadius: "20px",
 
@@ -106,20 +166,31 @@ export default function DashboardCards() {
               alignItems: "center",
               justifyContent: "center",
 
-              fontSize: "36px",
+              fontSize: "30px",
 
-              background:
-                card.gradient,
+              background: card.gradient,
+
+              boxShadow: `0 15px 30px ${card.color}40`,
             }}
           >
             {card.icon}
           </div>
 
-          <div>
+          {/* Content */}
+          <div
+            style={{
+              marginTop: "22px",
+            }}
+          >
             <h2
               style={{
                 color: "white",
-                marginBottom: "12px",
+
+                margin: 0,
+
+                fontSize: "24px",
+
+                fontWeight: 700,
               }}
             >
               {card.title}
@@ -127,8 +198,13 @@ export default function DashboardCards() {
 
             <p
               style={{
+                marginTop: "8px",
+
                 color:
-                  "rgba(255,255,255,.72)",
+                  "rgba(255,255,255,.70)",
+
+                fontSize: "14px",
+
                 lineHeight: 1.6,
               }}
             >
@@ -136,13 +212,38 @@ export default function DashboardCards() {
             </p>
           </div>
 
+          {/* Footer */}
           <div
             style={{
-              color: "#60A5FA",
-              fontWeight: 600,
+              marginTop: "auto",
+
+              display: "flex",
+              justifyContent:
+                "space-between",
+
+              alignItems: "center",
             }}
           >
-            Open →
+            <span
+              style={{
+                color: "#60A5FA",
+                fontWeight: 600,
+                fontSize: "14px",
+              }}
+            >
+              Open →
+            </span>
+
+            <span
+              style={{
+                color:
+                  "rgba(255,255,255,.40)",
+
+                fontSize: "12px",
+              }}
+            >
+              Click to continue
+            </span>
           </div>
         </div>
       ))}
