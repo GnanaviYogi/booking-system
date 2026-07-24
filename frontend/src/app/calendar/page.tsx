@@ -95,51 +95,47 @@ export default function CalendarPage() {
       />
 
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "320px 1fr",
-          gap: "20px",
+  style={{
+    display: "grid",
+    gridTemplateColumns: "320px 1fr",
+    gap: "20px",
 
-          height: "calc(100vh - 180px)",
+    height: "calc(100vh - 180px)",
 
-          overflow: "hidden",
-        }}
-      >
+    overflow: "hidden",
+  }}
+>
         {/* ROOM LIST */}
+<div
+  style={{
+    height: "100%",
 
-        <div
-          style={{
-            height: "100%",
+    overflowY: "auto",
+    overflowX: "hidden",
 
-            overflowY: "auto",
-            overflowX: "hidden",
-
-            paddingRight: "8px",
-          }}
-        >
-          <RoomList
-            selectedRoom={
-              selectedRoom
-            }
-            onSelectRoom={
-              setSelectedRoom
-            }
-            selectedDate={
-              selectedDate
-            }
-          />
-        </div>
+    paddingRight: "8px",
+  }}
+>
+  <RoomList
+    selectedRoom={selectedRoom}
+    onSelectRoom={setSelectedRoom}
+    selectedDate={selectedDate}
+  />
+</div>
 
 
        {/* CALENDAR GRID */}
 
-      <div
-        style={{
-          height: "100%",
-          overflow: "hidden",
-          minWidth: 0,
-        }}
-      >
+    <div
+  style={{
+    height: "100%",
+
+    overflowY: "auto",
+    overflowX: "auto",
+
+    minWidth: 0,
+  }}
+>
         <ScheduleGrid
           rooms={filteredRooms}
           bookings={bookings}

@@ -50,6 +50,9 @@ export default function CalendarToolbar({
         <Button
           variant="outlined"
           onClick={onPrev}
+          sx={{
+  textTransform: "none",
+}}
         >
           ◀ Prev
         </Button>
@@ -57,6 +60,9 @@ export default function CalendarToolbar({
         <Button
           variant="contained"
           onClick={onToday}
+          sx={{
+  textTransform: "none",
+}}
         >
           Today
         </Button>
@@ -64,6 +70,9 @@ export default function CalendarToolbar({
         <Button
           variant="outlined"
           onClick={onNext}
+          sx={{
+  textTransform: "none",
+}}
         >
           Next ▶
         </Button>

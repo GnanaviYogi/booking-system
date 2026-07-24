@@ -5,7 +5,28 @@ from app.models.user import User
 from app.core.rbac import require_permission
 
 router = APIRouter(prefix="/users", tags=["Users"])
+from app.schemas.user import (
+    ResetPasswordRequest,
+)
 
+from app.services.user import (
+    reset_password_service,
+)
+from app.schemas.user import UserUpdate, UserResponse
+
+from app.services.user import (
+    update_user_service,
+)
+from app.schemas.user import (
+    ResetPasswordRequest,
+    UserUpdate,
+    UserResponse,
+)
+
+from app.services.user import (
+    reset_password_service,
+    update_user_service,
+)
 
 # ✅ GET ALL USERS (from DB)
 from typing import List
@@ -38,31 +59,35 @@ def get_registered_users(
 # ✅ GET LOGIN LOGS (if stored separately later)
 @router.get("/logins")
 def get_login_logs(
-    current_user=Depends(require_permission("user:view")),
+    current_user=Depends(require_permission("user:admin")),
 ):
     return {"logins": "Implement login logs later ✅"}
 
 
 # ✅ DELETE USER
 @router.delete("/{user_id}")
-def delete_user(
+def delete_user(user_id: int):
+    return {"message": "User deletion has moved to /auth/me"}
+
+
+@router.post("/{user_id}/reset-password")
+def reset_password(
     user_id: int,
-    current_user=Depends(require_permission("user:delete")),
+    payload: ResetPasswordRequest,
+    current_user=Depends(require_permission("user:view")),
 ):
     db = SessionLocal()
 
-    user = db.query(User).filter(User.id == user_id).first()
-
-    if not user:
+    try:
+        return reset_password_service(
+            db,
+            user_id,
+            payload.new_password,
+        )
+    finally:
         db.close()
-        return {"message": "User not found"}
 
-    if user.id == current_user.id:
-        db.close()
-        return {"message": "You cannot delete your own account"}
 
-    db.delete(user)
-    db.commit()
-    db.close()
-
-    return {"message": f"User {user_id} deleted ✅"}
+@router.put("/{user_id}")
+def update_user(user_id: int):
+    return {"message": "User updates have moved to /auth/me"}

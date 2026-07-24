@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import StatusSnackbar from "@/components/StatusSnackbar";
 import AuthLayout from "@/components/auth/AuthLayout";
 import LoginForm from "@/components/auth/LoginForm";
 import RegisterForm from "@/components/auth/RegisterForm";
-import { Alert } from "@mui/material";
+
 
 import {
   useLoginMutation,
@@ -58,8 +58,7 @@ export default function LoginPage() {
   const [message, setMessage] =
     useState("");
 
-  const [logoutMessage, setLogoutMessage] =
-    useState("");
+
 
   const [severity, setSeverity] =
     useState<"success" | "error">(
@@ -72,22 +71,28 @@ export default function LoginPage() {
   const [registerUser] =
     useRegisterMutation();
 
-  useEffect(() => {
-    const params =
-      new URLSearchParams(
-        window.location.search
-      );
+useEffect(() => {
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
 
-    if (
-      params.get("logout") === "1"
-    ) {
-      setLogoutMessage(
-        "Logged out successfully ✅"
-      );
+  if (params.get("logout") === "1") {
+    setMessage(
+      "Logged out successfully ✅"
+    );
 
-    }
-  }, []);
+    setSeverity("success");
 
+    setOpenSnack(true);
+
+    window.history.replaceState(
+      {},
+      "",
+      "/login"
+    );
+  }
+}, []);
   const validateForm = () => {
     let valid = true;
 
@@ -246,23 +251,7 @@ localStorage.setItem(
   
 return (
   <>
-    {logoutMessage && (
-      <Alert
-        severity="success"
-        sx={{
-          position: "fixed",
-          top: 24,
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "fit-content",
-          minWidth: 320,
-          zIndex: 9999,
-          fontWeight: 600,
-        }}
-      >
-        {logoutMessage}
-      </Alert>
-     )}
+ 
 
     <AuthLayout>
       {isRegister ? (

@@ -16,6 +16,7 @@ def seed_role_permissions(db: Session):
             "room:view",
             "user:view",
             "user:delete",
+            "user:update",
         ],
         "Employee": [
             "booking:view",

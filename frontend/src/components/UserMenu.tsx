@@ -1,29 +1,46 @@
 "use client";
 
 import { useState } from "react";
+
 import {
   Menu,
   MenuItem,
   Dialog,
-  DialogTitle,
   DialogActions,
   Button,
   Box,
-  Typography
+  Typography,
 } from "@mui/material";
-import { useRouter } from "next/navigation";
 
-export default function UserMenu({ userEmail }: { userEmail: string | null }) {
-  const router = useRouter();
+import EditProfileDialog from "./EditProfileDialog";
 
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const openMenu = Boolean(anchorEl);
+export default function UserMenu({
+  userEmail,
+}: {
+  userEmail: string | null;
+}) {
+  const [anchorEl, setAnchorEl] =
+    useState<null | HTMLElement>(
+      null
+    );
 
-  const [openDialog, setOpenDialog] = useState(false);
+  const openMenu =
+    Boolean(anchorEl);
 
-  // ✅ MENU HANDLERS
-  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
+  const [
+    openDialog,
+    setOpenDialog,
+  ] = useState(false);
+
+  const [editOpen, setEditOpen] =
+    useState(false);
+
+  const handleMenuClick = (
+    event: React.MouseEvent<HTMLElement>
+  ) => {
+    setAnchorEl(
+      event.currentTarget
+    );
   };
 
   const handleCloseMenu = () => {
@@ -36,175 +53,278 @@ export default function UserMenu({ userEmail }: { userEmail: string | null }) {
   };
 
   const confirmLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user");
+    localStorage.removeItem(
+      "access_token"
+    );
+
+    localStorage.removeItem(
+      "refresh_token"
+    );
+
+    localStorage.removeItem(
+      "user"
+    );
 
     window.location.href =
       "/login?logout=1";
   };
 
-
   return (
     <>
-      {/* ✅ USER BUTTON (NEW DESIGN) */}
       <Box
-        onClick={handleMenuClick}
+        onClick={
+          handleMenuClick
+        }
         sx={{
           display: "flex",
           alignItems: "center",
-          gap: 1,
-          background: "rgba(255,255,255,0.9)",
-          padding: "6px 14px",
-          borderRadius: "25px",
+          gap: 1.2,
+
+          px: 1.5,
+          py: 0.8,
+
           cursor: "pointer",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-          transition: "0.2s",
+
+          borderRadius:
+            "999px",
+
+          background:
+            "rgba(255,255,255,.08)",
+
+          backdropFilter:
+            "blur(20px)",
+
+          border:
+            "1px solid rgba(255,255,255,.12)",
+
+          transition: ".25s",
+
           "&:hover": {
-            transform: "scale(1.05)",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
-          }
+            transform:
+              "translateY(-2px)",
+
+            background:
+              "rgba(255,255,255,.12)",
+          },
         }}
       >
-        {/* ✅ AVATAR */}
         <Box
           sx={{
-            width: 28,
-            height: 28,
-            borderRadius: "50%",
-            background: "#2563eb",
-            color: "white",
+            width: 34,
+            height: 34,
+
+            borderRadius:
+              "50%",
+
+            background:
+              "linear-gradient(135deg,#3B82F6,#8B5CF6)",
+
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontWeight: "600",
-            fontSize: "14px"
+            alignItems:
+              "center",
+            justifyContent:
+              "center",
+
+            color: "white",
+            fontWeight: 700,
+            fontSize: "14px",
           }}
         >
           {userEmail &&
-            userEmail !== "undefined"
-              ? userEmail.charAt(0).toUpperCase()
-              : "U"}
+          userEmail !==
+            "undefined"
+            ? userEmail
+                .charAt(0)
+                .toUpperCase()
+            : "U"}
         </Box>
-
-        {/* ✅ EMAIL */}
-       
 
         <Typography
           sx={{
             fontSize: "14px",
-            color: "#1e293b",
             fontWeight: 500,
+            color: "white",
           }}
         >
           {userEmail &&
-          userEmail !== "undefined"
-            ? userEmail.split("@")[0]
+          userEmail !==
+            "undefined"
+            ? userEmail.split(
+                "@"
+              )[0]
             : "User"}
         </Typography>
       </Box>
 
-      {/* ✅ DROPDOWN MENU */}
       <Menu
         anchorEl={anchorEl}
         open={openMenu}
-        onClose={handleCloseMenu}
+        onClose={
+          handleCloseMenu
+        }
         PaperProps={{
           sx: {
-            borderRadius: "10px",
-            marginTop: "8px",
-            boxShadow: "0 6px 20px rgba(0,0,0,0.15)"
-          }
+            mt: 1,
+
+            borderRadius:
+              "16px",
+
+            background:
+              "linear-gradient(180deg,#112244 0%,#0f172a 100%)",
+
+            border:
+              "1px solid rgba(255,255,255,.08)",
+
+            color: "white",
+
+            minWidth: 180,
+          },
         }}
       >
         <MenuItem
-          onClick={handleLogoutClick}
+          onClick={() => {
+            handleCloseMenu();
+            setEditOpen(true);
+          }}
           sx={{
-            fontSize: "14px",
-            padding: "10px 20px",
-            "&:hover": {
-              background: "#fee2e2",
-              color: "#dc2626"
-            }
+            py: 1.3,
           }}
         >
-          ⏻ Logout
+          Edit Profile
+        </MenuItem>
+
+        <MenuItem
+          onClick={
+            handleLogoutClick
+          }
+          sx={{
+            py: 1.3,
+          }}
+        >
+          Logout
         </MenuItem>
       </Menu>
 
-      {/* ✅ CONFIRMATION DIALOG */}
-   <Dialog
-  open={openDialog}
-  onClose={() => setOpenDialog(false)}
-  PaperProps={{
-    sx: {
-      borderRadius: "14px",
-      padding: "12px 16px",
-      boxShadow: "0 10px 25px rgba(0,0,0,0.12)", // ✅ soft shadow
-      border: "none", // ✅ remove unwanted border
-      minWidth: "320px"
-    }
-  }}
->
-  {/* ✅ TITLE */}
-  <DialogTitle
-    sx={{
-      fontWeight: "500",   // ✅ less bold
-      fontSize: "17px",    // ✅ slightly smaller
-      textAlign: "center",
-      color: "#374151",    // ✅ soft dark color
-      paddingBottom: "6px"
-    }}
-  >
-    Are you sure you want to logout?
-  </DialogTitle>
-
-  {/* ✅ ACTION BUTTONS */}
-  <DialogActions
-    sx={{
-      justifyContent: "center",
-      gap: "24px",
-      paddingBottom: "12px"
-    }}
-  >
-    {/* ❌ NO BUTTON (SOFT BLUE) */}
-    <Button
-      onClick={() => setOpenDialog(false)}
-      sx={{
-        textTransform: "none",
-        borderRadius: "8px",
-        padding: "6px 18px",
-        fontWeight: "500",
-        color: "#2563eb",
-        border: "1px solid #dbeafe",
-        "&:hover": {
-          backgroundColor: "#eff6ff"
+      <Dialog
+        open={openDialog}
+        onClose={() =>
+          setOpenDialog(false)
         }
-      }}
-    >
-      No
-    </Button>
+        BackdropProps={{
+          sx: {
+            backdropFilter:
+              "blur(8px)",
 
-    {/* ✅ YES BUTTON (SOFT RED) */}
-    <Button
-      onClick={confirmLogout}
-      sx={{
-        textTransform: "none",
-        borderRadius: "8px",
-        padding: "6px 18px",
-        fontWeight: "500",
-        color: "#dc2626",
-        border: "1px solid #fee2e2",
-        "&:hover": {
-          backgroundColor: "#fee2e2"
+            background:
+              "rgba(2,6,23,.65)",
+          },
+        }}
+        PaperProps={{
+          sx: {
+            borderRadius:
+              "24px",
+
+            minWidth:
+              "420px",
+
+            background:
+              "linear-gradient(180deg,#112244 0%,#0f172a 100%)",
+
+            border:
+              "1px solid rgba(96,165,250,.25)",
+
+            color: "white",
+
+            boxShadow:
+              "0 20px 60px rgba(0,0,0,.55)",
+          },
+        }}
+      >
+        <Box
+          sx={{
+            p: 4,
+            textAlign:
+              "center",
+          }}
+        >
+          <Box
+            sx={{
+              width: 60,
+              height: 4,
+
+              borderRadius:
+                "999px",
+
+              background:
+                "linear-gradient(90deg,#3B82F6,#8B5CF6)",
+
+              mx: "auto",
+              mb: 3,
+            }}
+          />
+
+          <Typography
+            sx={{
+              fontSize:
+                "26px",
+
+              fontWeight: 700,
+
+              mb: 1,
+            }}
+          >
+            Sign Out
+          </Typography>
+
+          <Typography
+            sx={{
+              color:
+                "rgba(255,255,255,.65)",
+            }}
+          >
+            Are you sure you
+            want to continue?
+          </Typography>
+        </Box>
+
+        <DialogActions
+          sx={{
+            justifyContent:
+              "center",
+
+            gap: 2,
+
+            px: 4,
+            pb: 3,
+          }}
+        >
+          <Button
+            onClick={() =>
+              setOpenDialog(
+                false
+              )
+            }
+          >
+            Cancel
+          </Button>
+
+          <Button
+            variant="contained"
+            onClick={
+              confirmLogout
+            }
+          >
+            Logout
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <EditProfileDialog
+        open={editOpen}
+        onClose={() =>
+          setEditOpen(false)
         }
-      }}
-    >
-      Yes
-    </Button>
-  </DialogActions>
-</Dialog>
-
+      />
     </>
   );
 }

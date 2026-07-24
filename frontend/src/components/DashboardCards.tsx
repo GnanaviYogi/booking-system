@@ -2,11 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-
+import AppSkeleton from "./skeletons/AppSkeleton";
 export default function DashboardCards() {
-  const router = useRouter();
+ const router = useRouter();
 
-  const { hasPermission } = useAuth();
+const { hasPermission } = useAuth();
+
+const loading = false;
+
+if (loading) {
+  return <AppSkeleton count={4} />;
+}
 
   const cards = [
     {
@@ -42,6 +48,9 @@ export default function DashboardCards() {
       visible: hasPermission("booking:create"),
     },
   ].filter((card) => card.visible);
+  if (loading) {
+  return <AppSkeleton count={4} />;
+}
 
   return (
     <div

@@ -43,43 +43,54 @@ export default function RoomList({
       )
       .join(" ");
 
+  const roomColors: Record<
+    string,
+    string
+  > = {
+    
+ Ganga: "#A5C8FF",        // Pastel Blue
+  Yamuna: "#A8E6CF",       // Mint
+  Kaveri: "#D6BCFA",       // Lavender
+  Narmada: "#FFD6A5",      // Peach
+  Saraswathi: "#BDE0FE",   // Sky
+  Brahmaputra: "#FFCAD4",  // Rose
+  Godavari: "#C7CEEA",     // Periwinkle
+  Krishna: "#B8F2E6",      // Aqua Mint
+  Mahanadi: "#FAEDCD",     // Cream Gold
+  Sabarmati: "#E0BBE4",    // Soft Orchid
+  Tapti: "#D8F3DC",        // Sage
+  Indus: "#CDE7FF",        // Ice Blue
+  Saraswati: "#E9D5FF",    // Light Violet
+};
+
+
   return (
     <div
       style={{
         height: "100%",
         overflowY: "auto",
         overflowX: "hidden",
-        paddingRight: "6px",
+        paddingRight: "3px",
       }}
-    
     >
       {/* HEADER */}
-
       <div
         style={{
-          padding: "18px",
-
-          marginBottom: "16px",
-
-          borderRadius: "20px",
-
+          padding: "10px",
+          marginBottom: "8px",
+          borderRadius: "12px",
           background:
-            "rgba(255,255,255,.08)",
-
-          backdropFilter:
-            "blur(20px)",
-
+            "rgba(255,255,255,.07)",
+          backdropFilter: "blur(20px)",
           border:
-            "1px solid rgba(255,255,255,.12)",
+            "1px solid rgba(255,255,255,.08)",
         }}
       >
         <div
           style={{
-            
-            height: "100%",
-            overflowY: "auto",
-            overflowX: "hidden",
-            paddingRight: "6px",
+            color: "white",
+            fontWeight: 700,
+            fontSize: "15px",
           }}
         >
           Rooms
@@ -88,21 +99,22 @@ export default function RoomList({
         <div
           style={{
             color:
-              "rgba(255,255,255,.7)",
-
-            fontSize: "13px",
-
-            marginTop: "4px",
+              "rgba(255,255,255,.65)",
+            fontSize: "11px",
+            marginTop: "2px",
           }}
         >
-          Select a room to filter
-          bookings
+          Select a room
         </div>
       </div>
 
       {rooms?.map((room: any) => {
         const isSelected =
           selectedRoom === room.name;
+
+        const roomColor =
+          roomColors[room.name] ||
+          "#3B82F6";
 
         return (
           <div
@@ -115,108 +127,78 @@ export default function RoomList({
               )
             }
             style={{
-              marginBottom: "14px",
-
-              padding: "18px",
-
+              marginBottom: "5px",
+              padding: "8px",
               cursor: "pointer",
 
-              borderRadius: "20px",
+              borderRadius: "12px",
 
               background: isSelected
-                ? "linear-gradient(135deg,#3B82F6,#8B5CF6)"
-                : "rgba(255,255,255,.08)",
+                ? `${roomColor}22`
+                : "rgba(255,255,255,.06)",
+
+              borderLeft: `4px solid ${roomColor}`,
+
+              border:
+                isSelected
+                  ? `1px solid ${roomColor}`
+                  : "1px solid rgba(255,255,255,.08)",
+
+              boxShadow: isSelected
+                ? `0 0 18px ${roomColor}55`
+                : "none",
 
               backdropFilter:
                 "blur(20px)",
 
-              border: isSelected
-                ? "2px solid #60A5FA"
-                : "1px solid rgba(255,255,255,.12)",
-
               transition:
-                "all .3s ease",
-
-              boxShadow: isSelected
-                ? "0 12px 30px rgba(59,130,246,.35)"
-                : "0 8px 20px rgba(0,0,0,.15)",
+                "all .2s ease",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform =
-                "translateY(-3px)";
+                "translateY(-2px)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform =
-                "translateY(0px)";
+                "translateY(0)";
             }}
           >
-            {/* ROOM NAME */}
-
             <div
               style={{
-                color: "white",
-
-                fontWeight: 700,
-
-                fontSize: "16px",
-
-                marginBottom: "10px",
+                display: "flex",
+                justifyContent:
+                  "space-between",
+                alignItems: "center",
+                marginBottom: "4px",
               }}
             >
-              {format(room.name)}
+              <div
+                style={{
+                  color: roomColor,
+                  fontWeight: 700,
+                  fontSize: "13px",
+                }}
+              >
+                {format(room.name)}
+              </div>
+
+              <div
+                style={{
+                  color:
+                    "rgba(255,255,255,.80)",
+                  fontSize: "10px",
+                  fontWeight: 500,
+                }}
+              >
+                Capacity: {room.capacity}
+              </div>
             </div>
-
-            {/* CAPACITY */}
-
-            <div
-              style={{
-                display: "inline-block",
-
-                padding:
-                  "6px 12px",
-
-                borderRadius:
-                  "999px",
-
-                background:
-                  "rgba(255,255,255,.15)",
-
-                color: "white",
-
-                fontSize: "12px",
-
-                marginBottom: "14px",
-              }}
-            >
-              👥 Capacity:{" "}
-              {room.capacity}
-            </div>
-
-            {/* UTILIZATION */}
 
             {!isWeekend && (
               <RoomUtilization
                 roomName={room.name}
                 bookings={bookings}
               />
-            )}
-
-            {/* SELECTED BADGE */}
-
-            {isSelected && (
-              <div
-                style={{
-                  marginTop: "12px",
-
-                  color: "white",
-
-                  fontSize: "12px",
-
-                  fontWeight: 600,
-                }}
-              >
-                ✓ Selected Room
-              </div>
             )}
           </div>
         );
@@ -225,21 +207,11 @@ export default function RoomList({
       {rooms?.length === 0 && (
         <div
           style={{
-            padding: "30px",
-
-            borderRadius: "20px",
-
+            padding: "15px",
+            borderRadius: "12px",
             textAlign: "center",
-
             background:
-              "rgba(255,255,255,.08)",
-
-            backdropFilter:
-              "blur(20px)",
-
-            border:
-              "1px solid rgba(255,255,255,.12)",
-
+              "rgba(255,255,255,.06)",
             color: "white",
           }}
         >

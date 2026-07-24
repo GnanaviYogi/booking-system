@@ -2,6 +2,10 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 
 
+class ResetPasswordRequest(BaseModel):
+    new_password: str
+
+
 # ✅ REGISTER SCHEMA
 class UserCreate(BaseModel):
     username: str

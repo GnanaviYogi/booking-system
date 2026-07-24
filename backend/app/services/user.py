@@ -3,6 +3,28 @@ from fastapi import HTTPException
 from app.models.user import User
 from app.core.security import hash_password
 from app.core.security import verify_password
+from app.core.security import hash_password
+
+
+def reset_password_service(
+    db: Session,
+    user_id: int,
+    new_password: str,
+):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found",
+        )
+
+    user.password = hash_password(new_password)
+
+    db.commit()
+    db.refresh(user)
+
+    return {"message": f"Password reset successfully for {user.username}"}
 
 
 # ✅ CREATE USER
@@ -48,13 +70,29 @@ def update_user_service(db: Session, user_id: int, data):
         raise HTTPException(status_code=404, detail="User not found")
 
     if data.username:
+        existing = (
+            db.query(User)
+            .filter(User.username == data.username, User.id != user_id)
+            .first()
+        )
+
+        if existing:
+            raise HTTPException(status_code=400, detail="Username already exists")
+
         user.username = data.username
 
     if data.email:
+        existing = (
+            db.query(User).filter(User.email == data.email, User.id != user_id).first()
+        )
+
+        if existing:
+            raise HTTPException(status_code=400, detail="Email already exists")
+
         user.email = data.email
 
     if data.password:
-        user.password = hash_password(data.password)  # ✅ hash on update also
+        user.password = hash_password(data.password)
 
     db.commit()
     db.refresh(user)

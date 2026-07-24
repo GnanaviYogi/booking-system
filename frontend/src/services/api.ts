@@ -106,7 +106,7 @@ export const api = createApi({
 
   baseQuery: baseQueryWithReauth,
 
-  tagTypes: ["Bookings"],
+  tagTypes: ["Bookings","Users"],
 
   endpoints: (builder) => ({
     // GET BOOKINGS
@@ -148,22 +148,63 @@ export const api = createApi({
       }),
     }),
 
+    updateMyProfile: builder.mutation({
+  query: (data) => ({
+    url: "auth/me",
+    method: "PUT",
+    body: data,
+  }),
+}),
+
+deleteMyAccount: builder.mutation<void, void>({
+  query: () => ({
+    url: "auth/me",
+    method: "DELETE",
+  }),
+}),
+
+    
+// RESET PASSWORD
+resetPassword: builder.mutation({
+  query: ({
+    userId,
+    new_password,
+  }) => ({
+    url: `users/${userId}/reset-password`,
+    method: "POST",
+    body: {
+      new_password,
+    },
+  }),
+}),
+
+
 
         // GET USERS
     getUsers: builder.query({
-      query: () => ({
-        url: "users/",
-      }),
-    }),
+  query: () => ({
+    url: "users/",
+  }),
+  providesTags: ["Users"],
+}),
 
     // DELETE USER
     deleteUser: builder.mutation({
-      query: (userId) => ({
-        url: `users/${userId}`,
-        method: "DELETE",
-      }),
-    }),
-
+  query: (userId) => ({
+    url: `users/${userId}`,
+    method: "DELETE",
+  }),
+  invalidatesTags: ["Users"],
+}),
+   
+   updateUser: builder.mutation({
+  query: ({ userId, data }) => ({
+    url: `users/${userId}`,
+    method: "PUT",
+    body: data,
+  }),
+  invalidatesTags: ["Users"],
+}),
 
 
 
@@ -228,6 +269,10 @@ export const api = createApi({
   }),
 });
 
+
+  
+
+
 export const {
   useGetBookingsQuery,
   useGetRoomsQuery,
@@ -240,4 +285,8 @@ export const {
   useGetMeQuery,
   useGetUsersQuery,
   useDeleteUserMutation,
+  useResetPasswordMutation,
+  useUpdateUserMutation,
+  useUpdateMyProfileMutation,
+  useDeleteMyAccountMutation,
 } = api;

@@ -3,10 +3,13 @@
 import { useRouter, usePathname } from "next/navigation";
 import UserMenu from "./UserMenu";
 import { hasPermission } from "@/utils/permissions";
+import { useGetMeQuery } from "@/services/api";
 
 export default function AppHeader() {
   const router = useRouter();
   const pathname = usePathname();
+  const { data: me } =
+    useGetMeQuery(undefined);
 
   const navItems = [
   {
@@ -39,21 +42,23 @@ export default function AppHeader() {
   return (
     <div
       style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
 
-        padding: "18px 24px",
-        marginBottom: "24px",
+  position: "sticky",
+  top: 10,
+  zIndex: 9999,
 
-        background: "rgba(255,255,255,.08)",
-        backdropFilter: "blur(20px)",
+  padding: "18px 24px",
+  marginBottom: "24px",
 
-        border:
-          "1px solid rgba(255,255,255,.12)",
+  background: "rgba(15,23,42,.95)",
+  backdropFilter: "blur(20px)",
 
-        borderRadius: "20px",
-      }}
+  border: "1px solid rgba(255,255,255,.12)",
+  borderRadius: "20px",
+}}
     >
       <div
         style={{
@@ -111,12 +116,8 @@ export default function AppHeader() {
         ))}
       </div>
 
-     <UserMenu
-  userEmail={
-    typeof window !== "undefined"
-      ? localStorage.getItem("user") || "User"
-      : "User"
-  }
+<UserMenu
+  userEmail={me?.email || "User"}
 />
 
     </div>

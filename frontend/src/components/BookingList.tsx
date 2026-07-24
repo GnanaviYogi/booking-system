@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import AppSkeleton from "./skeletons/AppSkeleton";
 
 import {
   Box,
@@ -118,13 +119,27 @@ export default function BookingList({
     );
   };
 
-  const { data: bookingsData } =
-    useGetBookingsQuery({
+      const currentUsername =
+      typeof window !== "undefined"
+        ? localStorage.getItem("username")
+        : null;
+
+    const roles = JSON.parse(
+      localStorage.getItem("roles") || "[]"
+    );
+
+    const isAdmin =
+      roles.includes("Admin");
+
+  const {
+  data: bookingsData,
+  isLoading,
+} = useGetBookingsQuery({
       ...(searchUser && {
         user_name: searchUser,
       }),
 
-      ...(selectedRoom && {
+      ...((filterRoom || selectedRoom) && {
         room_name:
           filterRoom || selectedRoom,
       }),
@@ -147,38 +162,51 @@ export default function BookingList({
         (page - 1) * itemsPerPage,
     });
 
-  const bookings =
-    bookingsData?.data || [];
+  
 
-  const total =
-    bookingsData?.total || 0;
+ const bookings =
+  bookingsData?.data || [];
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(total / itemsPerPage)
+const total =
+  bookingsData?.total || 0;
+
+const totalPages = Math.max(
+  1,
+  Math.ceil(total / itemsPerPage)
+);
+
+const { data: rooms = [] } =
+  useGetRoomsQuery(undefined);
+
+const [deleteBooking] =
+  useDeleteBookingMutation();
+
+if (isLoading) {
+  return (
+    <Box sx={{ mt: 2 }}>
+      <AppSkeleton count={6} />
+    </Box>
   );
-
-  const { data: rooms = [] } =
-    useGetRoomsQuery(undefined);
-
-  const [deleteBooking] =
-    useDeleteBookingMutation();
-
+}
+  
   const roomColors: any = {
-    Ganga: "#2563eb",
-    Yamuna: "#16a34a",
-    Kaveri: "#7c3aed",
-    Narmada: "#ea580c",
-    Saraswathi: "#0891b2",
-    Brahmaputra: "#dc2626",
-    Godavari: "#4f46e5",
-    Krishna: "#0d9488",
-    Mahanadi: "#ca8a04",
-    Sabarmati: "#c026d3",
-    Tapti: "#65a30d",
-    Indus: "#0284c7",
-    Saraswati: "#9333ea",
-  };
+  
+  Ganga: "#A5C8FF",        // Pastel Blue
+  Yamuna: "#A8E6CF",       // Mint
+  Kaveri: "#D6BCFA",       // Lavender
+  Narmada: "#FFD6A5",      // Peach
+  Saraswathi: "#BDE0FE",   // Sky
+  Brahmaputra: "#FFCAD4",  // Rose
+  Godavari: "#C7CEEA",     // Periwinkle
+  Krishna: "#B8F2E6",      // Aqua Mint
+  Mahanadi: "#FAEDCD",     // Cream Gold
+  Sabarmati: "#E0BBE4",    // Soft Orchid
+  Tapti: "#D8F3DC",        // Sage
+  Indus: "#CDE7FF",        // Ice Blue
+  Saraswati: "#E9D5FF",    // Light Violet
+};
+
+
 
   return (
     <Box>
@@ -187,7 +215,7 @@ export default function BookingList({
       <Paper
         sx={{
           p: 3,
-          height:"100%",
+          
           flexDirection: "column",
 
           borderRadius: "24px",
@@ -216,7 +244,7 @@ export default function BookingList({
           gap={2}
         >
           <Typography
-            fontSize={20}
+            fontSize={14}
             fontWeight={700}
           >
             {selectedRoom
@@ -233,6 +261,7 @@ export default function BookingList({
             <Button
               variant="outlined"
               onClick={handlePrevDay}
+              sx={{ textTransform: "none" }}
             >
               ◀ Prev
             </Button>
@@ -244,6 +273,20 @@ export default function BookingList({
             <TextField
               type="date"
               size="small"
+              sx={{
+  color: "#FFFFFF",
+  background:
+    "rgba(255,255,255,.08)",
+
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor:
+      "rgba(255,255,255,.25)",
+  },
+
+  "& .MuiSvgIcon-root": {
+    color: "#FFFFFF",
+  },
+}}
               value={selectedDate}
               onChange={(e) =>
                 setSelectedDate(
@@ -255,6 +298,7 @@ export default function BookingList({
             <Button
               variant="contained"
               onClick={handleToday}
+              sx={{ textTransform: "none" }}
             >
               Today
             </Button>
@@ -262,20 +306,12 @@ export default function BookingList({
             <Button
               variant="outlined"
               onClick={handleNextDay}
+              sx={{ textTransform: "none" }}
             >
               Next ▶
             </Button>
 
-            {hasPermission("booking:create") && (
-              <Button
-                variant="contained"
-                onClick={() =>
-                  router.push("/booking")
-                }
-              >
-                ➕ New Booking
-              </Button>
-            )}
+         
 
           </Box>
         </Box>
@@ -302,10 +338,7 @@ export default function BookingList({
       <Paper
         sx={{
           p: 3,
-          
-          height: "100%",
-
-          overflowY: "auto",
+         
 
           background:
             "rgba(255,255,255,.08)",
@@ -344,13 +377,14 @@ export default function BookingList({
             display: "grid",
             gridTemplateColumns:
               "220px 220px 220px 180px 220px",
+            alignItems: "center",
 
-            p: 2,
+            p: 1.8,
 
-            mb: 2,
+            mb: 0.8,
+            minHeight: "56px",
 
-
-            borderRadius: "16px",
+            borderRadius: "12px",
 
             background:
               "rgba(255,255,255,.05)",
@@ -378,9 +412,14 @@ export default function BookingList({
         </Box>
         
 
-        {bookings.map((b: any) => (
-          <Box
-            key={b.id}
+      {bookings.map((b: any) => {
+          const canManageBooking =
+            isAdmin ||
+            b.user_name === currentUsername;
+
+          return (
+            <Box
+              key={b.id}
             sx={{
               display: "grid",
               gridTemplateColumns:
@@ -388,9 +427,9 @@ export default function BookingList({
 
               alignItems: "center",
 
-              p: 2,
+              p: 1.2,
 
-              mb: 1.5,
+              mb: 1,
 
               borderRadius: "16px",
 
@@ -400,7 +439,7 @@ export default function BookingList({
               border:
                 "1px solid rgba(255,255,255,.08)",
 
-              borderLeft: `6px solid ${
+              borderLeft: `4px solid ${
                 roomColors[b.room_name] ||
                 "#ccc"
               }`,
@@ -408,11 +447,15 @@ export default function BookingList({
           >
             
             <Typography
-              fontWeight={700}
-              color={
-                roomColors[b.room_name]
-              }
-            >
+  fontWeight={700}
+  fontSize="15px"
+ sx={{
+  color:
+    roomColors[b.room_name],
+  textShadow:
+    "0 0 12px rgba(255,255,255,.15)",
+}}
+>
               {b.room_name}
             </Typography>
 
@@ -421,9 +464,23 @@ export default function BookingList({
             </Typography>
 
             <Typography>
-              {b.start_time} -{" "}
-              {b.end_time}
+              {new Date(
+                `2000-01-01T${b.start_time}`
+              ).toLocaleTimeString("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              })}
+              {" - "}
+              {new Date(
+                `2000-01-01T${b.end_time}`
+              ).toLocaleTimeString("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              })}
             </Typography>
+
 
             <Typography>
               {b.reason}
@@ -433,122 +490,125 @@ export default function BookingList({
               display="flex"
               gap={1}
             >
-              {hasPermission("booking:update") && (
-                <Button
-                  variant="contained"
-                  startIcon={<EditIcon />}
-                  onClick={() => {
-                    setSelected(b);
-                    setShowModal(true);
-                  }}
-                >
-                  Edit
-                </Button>
+              {hasPermission("booking:update") &&
+                canManageBooking && (
+                  <Button
+              variant="contained"
+              size="small"
+              sx={{
+                textTransform: "none",
+                minWidth: "80px",
+                height: "36px",
+                borderRadius: "10px",
+              }}
+                              >
+                    Edit
+                  </Button>
               )}
-
-              {hasPermission("booking:delete") && (
-                <Button
+              {hasPermission("booking:delete") &&
+                canManageBooking && (
+                  <Button
                   variant="contained"
                   color="error"
-                  startIcon={<DeleteIcon />}
-                  onClick={() => {
-                    setBookingToDelete(b.id);
-                    setConfirmOpen(true);
+                  size="small"
+                  sx={{
+                    textTransform: "none",
+                    minWidth: "90px",
+                    height: "36px",
+                    borderRadius: "10px",
                   }}
-                >
-                  Delete
-                </Button>
+                  >
+                    Delete
+                  </Button>
               )}
             </Box>
           </Box>
-        ))}
+          );
+        })}
+      
         
         <Box
-          sx={{
-            mt: 2,
-            pt: 2,
-            borderTop:
-               "1px solid rgba(255,255,255,.1)",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            position: "sticky",
-            bottom: 0,
-            background:
-               "rgba(15,23,42,.95)",
-            zIndex: 10,
-          }}
-        
-        >
-          <Select
-            size="small"
-            value={itemsPerPage}
-            onChange={(e) =>
-              setItemsPerPage(
-                Number(
-                  e.target.value
-                )
-              )
-            }
-          >
-            <MenuItem value={10}>
-              10
-            </MenuItem>
-
-            <MenuItem value={20}>
-              20
-            </MenuItem>
-
-            <MenuItem value={50}>
-              50
-            </MenuItem>
-          </Select>
-
-          <Pagination
-  page={page}
-  count={totalPages}
-  showFirstButton
-  showLastButton
-  onChange={(_, value) =>
-    setPage(value)
-  }
   sx={{
-    "& .MuiPaginationItem-root": {
-      color: "white",
-      border:
-        "1px solid rgba(255,255,255,.12)",
+    mt: 3,
+    pt: 2,
+    borderTop: "1px solid rgba(255,255,255,.1)",
 
-      background:
-        "rgba(255,255,255,.05)",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexWrap: "wrap",
 
-      backdropFilter:
-        "blur(20px)",
-
-      transition: "all .3s ease",
-
-      "&:hover": {
-        background:
-          "rgba(255,255,255,.12)",
-
-        transform:
-          "translateY(-2px)",
-      },
-    },
-
-    "& .Mui-selected": {
-      background:
-        "linear-gradient(135deg,#3B82F6,#8B5CF6) !important",
-
-      color: "white",
-
-      fontWeight: 700,
-
-      boxShadow:
-        "0 8px 20px rgba(59,130,246,.4)",
-    },
+    gap: 2,
   }}
-/>
-        </Box>
+>
+  {/* Left Side */}
+  <Box
+    sx={{
+      display: "flex",
+      alignItems: "center",
+      gap: 2,
+      color: "white",
+    }}
+  >
+    <Typography>
+      Per page
+    </Typography>
+
+    <Select
+      size="small"
+      value={itemsPerPage}
+      onChange={(e) =>
+        setItemsPerPage(
+          Number(e.target.value)
+        )
+      }
+      sx={{
+        minWidth: 80,
+        color: "white",
+
+        "& .MuiSvgIcon-root": {
+          color: "white",
+        },
+      }}
+    >
+      <MenuItem value={10}>10</MenuItem>
+      <MenuItem value={20}>20</MenuItem>
+      <MenuItem value={50}>50</MenuItem>
+    </Select>
+
+    <Typography>
+      {(page - 1) * itemsPerPage + 1}-
+      {Math.min(
+        page * itemsPerPage,
+        total
+      )}{" "}
+      of {total}
+    </Typography>
+  </Box>
+
+  {/* Right Side */}
+  <Pagination
+    page={page}
+    count={totalPages}
+    showFirstButton
+    showLastButton
+    onChange={(_, value) =>
+      setPage(value)
+    }
+    sx={{
+      "& .MuiPaginationItem-root": {
+        color: "white",
+      },
+
+      "& .Mui-selected": {
+        background:
+          "#3B82F6 !important",
+        color:
+          "#fff !important",
+      },
+    }}
+  />
+</Box>
       </Paper>
 
       <BookingModal
@@ -604,4 +664,4 @@ export default function BookingList({
       </Dialog>
     </Box>
   );
-}
+  }

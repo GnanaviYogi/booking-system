@@ -33,6 +33,10 @@ def seed_permissions(db: Session):
             "name": "user:delete",
             "description": "Delete users",
         },
+        {
+            "name": "user:update",
+            "description": "Update users and reset passwords",
+        },
     ]
 
     for permission_data in permissions:

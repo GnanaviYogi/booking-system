@@ -31,7 +31,7 @@ export default function AuthLayout({
           filter: "blur(100px)",
           top: -120,
           left: -120,
-          animation: "float1 18s ease-in-out infinite",
+          
         }}
       />
 
@@ -48,7 +48,7 @@ export default function AuthLayout({
           filter: "blur(120px)",
           bottom: -120,
           right: -120,
-          animation: "float2 22s ease-in-out infinite",
+          
         }}
       />
 
@@ -65,7 +65,7 @@ export default function AuthLayout({
           filter: "blur(100px)",
           top: "35%",
           left: "40%",
-          animation: "float3 16s ease-in-out infinite",
+          
         }}
       />
 

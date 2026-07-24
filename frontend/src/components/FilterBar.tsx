@@ -6,8 +6,11 @@ import {
   Select,
   MenuItem,
   Button,
-  Typography,
+  InputAdornment,
 } from "@mui/material";
+
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 
 import { useState } from "react";
 
@@ -24,6 +27,23 @@ export default function FilterBar({
 }: any) {
   const [error, setError] =
     useState("");
+
+  const roomColors: Record<string, string> = {
+  Ganga: "#A5C8FF",
+  Yamuna: "#A8E6CF",
+  Kaveri: "#D6BCFA",
+  Narmada: "#FFD6A5",
+  Saraswathi: "#BDE0FE",
+  Brahmaputra: "#FFCAD4",
+  Godavari: "#C7CEEA",
+  Krishna: "#B8F2E6",
+  Mahanadi: "#FAEDCD",
+  Sabarmati: "#E0BBE4",
+  Tapti: "#D8F3DC",
+  Indus: "#CDE7FF",
+  Saraswati: "#E9D5FF",
+};
+
 
   const handleUserChange = (
     value: string
@@ -45,27 +65,32 @@ export default function FilterBar({
   };
 
   const glassField = {
-    minWidth: 200,
-
     "& .MuiOutlinedInput-root": {
-      background:
-        "rgba(255,255,255,.08)",
+      height: 38,
 
-      borderRadius: "14px",
+      borderRadius: "12px",
+
+      background:
+        "rgba(255,255,255,.05)",
 
       color: "white",
 
-      backdropFilter:
-        "blur(20px)",
-    },
-
-    "& .MuiOutlinedInput-notchedOutline":
-      {
+      "& fieldset": {
         borderColor:
-          "rgba(255,255,255,.12)",
+          "rgba(255,255,255,.08)",
       },
 
-    "& .MuiInputLabel-root": {
+      "&:hover fieldset": {
+        borderColor:
+          "rgba(96,165,250,.4)",
+      },
+
+      "&.Mui-focused fieldset": {
+        borderColor: "#60A5FA",
+      },
+    },
+
+    "& .MuiSvgIcon-root": {
       color:
         "rgba(255,255,255,.7)",
     },
@@ -78,56 +103,33 @@ export default function FilterBar({
   return (
     <Box
       sx={{
-        p: 3,
+        mb: 1,
 
-        mb: 2,
+        p: 1.2,
+
+        borderRadius: "16px",
 
         background:
-          "rgba(255,255,255,.08)",
+          "rgba(255,255,255,.05)",
 
         backdropFilter:
           "blur(20px)",
 
         border:
-          "1px solid rgba(255,255,255,.12)",
-
-        borderRadius: "24px",
+          "1px solid rgba(255,255,255,.08)",
       }}
     >
-      <Box mb={2}>
-        <Typography
-          sx={{
-            color: "white",
-            fontWeight: 700,
-            fontSize: "18px",
-          }}
-        >
-          Search & Filters
-        </Typography>
-
-        <Typography
-          sx={{
-            color:
-              "rgba(255,255,255,.7)",
-            fontSize: "13px",
-          }}
-        >
-          Quickly find room bookings
-        </Typography>
-      </Box>
-
       <Box
         sx={{
           display: "flex",
-          gap: 2,
+          gap: 1,
           flexWrap: "wrap",
           alignItems: "center",
         }}
       >
-        {/* USER */}
-
+        {/* SEARCH */}
         <TextField
-          label="🔍 Search User"
+          placeholder="Search User"
           value={searchUser}
           size="small"
           error={!!error}
@@ -137,93 +139,220 @@ export default function FilterBar({
               e.target.value
             )
           }
-          sx={glassField}
+          sx={{
+            ...glassField,
+            minWidth: 220,
+          }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchRoundedIcon
+                  fontSize="small"
+                />
+              </InputAdornment>
+            ),
+          }}
         />
 
         {/* REASON */}
+      <Select
+  size="small"
+  displayEmpty
+  value={reason || ""}
+  onChange={(e) =>
+    setReason(e.target.value)
+  }
+  MenuProps={{
+    PaperProps: {
+      sx: {
+        mt: 1,
+        borderRadius: "16px",
+        background:
+          "rgba(17,25,40,.96)",
+        backdropFilter:
+          "blur(24px)",
+        border:
+          "1px solid rgba(255,255,255,.08)",
 
-        <Select
-          size="small"
-          value={reason}
-          displayEmpty
-          onChange={(e) =>
-            setReason(
-              e.target.value
-            )
-          }
-          sx={{
-            ...glassField,
+        "& .MuiMenuItem-root": {
+          color: "white",
+          minHeight: 42,
+          fontWeight: 500,
 
-            minWidth: 180,
+          "&:hover": {
+            background:
+              "rgba(255,255,255,.08)",
+          },
+        },
+      },
+    },
+  }}
+  sx={{
+    ...glassField,
+    minWidth: 160,
+    color: "white",
+  }}
+>
+  <MenuItem value="">
+    All Reasons
+  </MenuItem>
 
-            color: "white",
-          }}
-        >
-          <MenuItem value="">
-            All Reasons
-          </MenuItem>
+  <MenuItem value="Meeting">
+    Meeting
+  </MenuItem>
 
-          <MenuItem value="Meeting">
-            Meeting
-          </MenuItem>
+  <MenuItem value="Interview">
+    Interview
+  </MenuItem>
 
-          <MenuItem value="Interview">
-            Interview
-          </MenuItem>
+  <MenuItem value="Training">
+    Training
+  </MenuItem>
 
-          <MenuItem value="Training">
-            Training
-          </MenuItem>
+  <MenuItem value="Presentation">
+    Presentation
+  </MenuItem>
 
-          <MenuItem value="Presentation">
-            Presentation
-          </MenuItem>
+  <MenuItem value="Workshop">
+    Workshop
+  </MenuItem>
 
-          <MenuItem value="Workshop">
-            Workshop
-          </MenuItem>
-
-          <MenuItem value="Other">
-            Other
-          </MenuItem>
-        </Select>
+  <MenuItem value="Other">
+    Other
+  </MenuItem>
+</Select>
 
         {/* ROOM */}
-
-        <Select
-          size="small"
-          value={filterRoom}
-          displayEmpty
-          onChange={(e) =>
-            setFilterRoom(
-              e.target.value
-            )
-          }
+        {/* ROOM */}
+<Select
+  size="small"
+  displayEmpty
+  value={filterRoom || ""}
+  onChange={(e) =>
+    setFilterRoom(e.target.value)
+  }
+  renderValue={(selected) => {
+    if (!selected) {
+      return (
+        <Box
           sx={{
-            ...glassField,
-
-            minWidth: 220,
-
-            color: "white",
+            color:
+              "rgba(255,255,255,.9)",
+            fontWeight: 500,
+            fontSize: "14px",
           }}
         >
-          <MenuItem value="">
-            All Rooms
-          </MenuItem>
+          All Rooms
+        </Box>
+      );
+    }
 
-          {rooms.map((r: any) => (
-            <MenuItem
-              key={r.id}
-              value={r.name}
-            >
-              {r.name} (
-              {r.capacity} seats)
-            </MenuItem>
-          ))}
-        </Select>
+    return (
+      <Box
+        sx={{
+          color:
+            "rgba(255,255,255,.9)",
+          fontWeight: 500,
+          fontSize: "14px",
+        }}
+      >
+        {selected}
+      </Box>
+    );
+  }}
+  MenuProps={{
+    PaperProps: {
+      sx: {
+        mt: 1,
+        p: 1,
+
+        borderRadius: "18px",
+
+        background:
+          "rgba(17,25,40,.96)",
+
+        backdropFilter:
+          "blur(24px)",
+
+        border:
+          "1px solid rgba(255,255,255,.08)",
+
+        boxShadow:
+          "0 20px 50px rgba(0,0,0,.35)",
+      },
+    },
+  }}
+  sx={{
+    ...glassField,
+    minWidth: 180,
+    color: "white",
+  }}
+>
+  <MenuItem
+    value=""
+    sx={{
+      borderRadius: "12px",
+      color: "white",
+    }}
+  >
+    All Rooms
+  </MenuItem>
+
+  {rooms.map((r: any) => (
+    <MenuItem
+      key={r.id}
+      value={r.name}
+      sx={{
+        borderRadius: "12px",
+        mb: 0.5,
+
+        background:
+          "rgba(255,255,255,.04)",
+
+        borderLeft: `3px solid ${
+          roomColors[r.name]
+        }`,
+
+        "&:hover": {
+          background:
+            "rgba(255,255,255,.08)",
+        },
+      }}
+    >
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          justifyContent:
+            "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Box
+          sx={{
+            color: "white",
+            fontWeight: 500,
+            fontSize: "14px",
+          }}
+        >
+          {r.name}
+        </Box>
+
+        <Box
+          sx={{
+            fontSize: "11px",
+            color:
+              "rgba(255,255,255,.55)",
+          }}
+        >
+          {r.capacity}
+        </Box>
+      </Box>
+    </MenuItem>
+  ))}
+</Select>
 
         {/* DATE */}
-
         <TextField
           type="date"
           size="small"
@@ -233,13 +362,18 @@ export default function FilterBar({
               e.target.value
             )
           }
-          sx={glassField}
+          sx={{
+            ...glassField,
+            minWidth: 150,
+          }}
         />
 
-        {/* CLEAR */}
-
+        {/* RESET */}
         <Button
           variant="contained"
+          startIcon={
+            <RestartAltRoundedIcon />
+          }
           onClick={() => {
             setSearchUser("");
             setFilterRoom("");
@@ -248,14 +382,14 @@ export default function FilterBar({
             setError("");
           }}
           sx={{
-            height: "40px",
+            height: 38,
 
-            borderRadius: "14px",
+            borderRadius: "12px",
 
             textTransform:
               "none",
 
-            fontWeight: 600,
+            px: 2,
 
             background:
               "linear-gradient(135deg,#3B82F6,#8B5CF6)",
@@ -266,7 +400,7 @@ export default function FilterBar({
             },
           }}
         >
-          Clear Filters
+          Reset
         </Button>
       </Box>
     </Box>

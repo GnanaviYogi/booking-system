@@ -16,6 +16,12 @@ from app.core.jwt_handler import (
     create_access_token,
     create_refresh_token,
 )
+from app.schemas.user import UserUpdate
+from app.services.user import (
+    update_user_service,
+    delete_user_service,
+)
+from app.db.database import SessionLocal
 
 router = APIRouter(
     prefix="/auth",
@@ -103,3 +109,46 @@ def get_me(
         "roles": [role.name for role in current_user.roles],
         "permissions": list(permissions),
     }
+
+
+@router.put("/me")
+def update_my_profile(
+    payload: UserUpdate,
+    current_user=Depends(get_current_user),
+):
+    db = SessionLocal()
+
+    try:
+        updated_user = update_user_service(
+            db,
+            current_user.id,
+            payload,
+        )
+
+        return {
+            "message": "Profile updated successfully ✅",
+            "user": {
+                "id": updated_user.id,
+                "username": updated_user.username,
+                "email": updated_user.email,
+            },
+        }
+
+    finally:
+        db.close()
+
+
+@router.delete("/me")
+def delete_my_account(
+    current_user=Depends(get_current_user),
+):
+    db = SessionLocal()
+
+    try:
+        return delete_user_service(
+            db,
+            current_user.id,
+        )
+
+    finally:
+        db.close()

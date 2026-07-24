@@ -98,14 +98,14 @@ export default function AppLayout({
       {/* Content */}
 
       <Box
-        sx={{
-          position: "relative",
-          zIndex: 2,
-          p: 2,
-          minHeight: "100vh",
-          pb: 4,
-        }}
-      >
+  sx={{
+    position: "relative",
+    zIndex: 2,
+    p: 2,
+    height: "100vh",
+    overflow: "hidden",
+  }}
+>
         <>
           <AppHeader />
           {children}
