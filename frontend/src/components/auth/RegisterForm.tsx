@@ -10,6 +10,7 @@ import {
   Popover,
   TextField,
   Typography,
+  CircularProgress,
 } from "@mui/material";
 
 import BusinessRoundedIcon from "@mui/icons-material/BusinessRounded";
@@ -33,6 +34,7 @@ interface RegisterFormProps {
 
   handleRegister: () => void;
   onSwitch: () => void;
+  isLoading: boolean;
 }
 
 export default function RegisterForm({
@@ -53,6 +55,7 @@ export default function RegisterForm({
 
   handleRegister,
   onSwitch,
+  isLoading,
 }: RegisterFormProps) {
   const [anchorEl, setAnchorEl] =
     useState<HTMLElement | null>(null);
@@ -362,6 +365,7 @@ export default function RegisterForm({
         fullWidth
         variant="contained"
         onClick={handleRegister}
+        disabled={isLoading}
         sx={{
           height: 50,
 
@@ -392,7 +396,18 @@ export default function RegisterForm({
           },
         }}
       >
-        Register
+        {isLoading ? (
+  <>
+    <CircularProgress
+      size={18}
+      color="inherit"
+      sx={{ mr: 1 }}
+    />
+    Creating Account...
+  </>
+) : (
+  "Register"
+)}
       </Button>
 
       <Typography

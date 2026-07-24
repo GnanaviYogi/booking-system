@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  CircularProgress,
 } from "@mui/material";
 
 import { useRouter } from "next/navigation";
@@ -178,8 +179,10 @@ const totalPages = Math.max(
 const { data: rooms = [] } =
   useGetRoomsQuery(undefined);
 
-const [deleteBooking] =
-  useDeleteBookingMutation();
+const [
+  deleteBooking,
+  { isLoading: isDeletingBooking },
+] = useDeleteBookingMutation();
 
 if (isLoading) {
   return (
@@ -642,24 +645,35 @@ if (isLoading) {
             Cancel
           </Button>
 
-          <Button
-            color="error"
-            onClick={async () => {
-              if (
-                bookingToDelete !==
-                null
-              ) {
-                await deleteBooking(
-                  bookingToDelete
-                ).unwrap();
-              }
+         <Button
+  color="error"
+  disabled={isDeletingBooking}
+  onClick={async () => {
+    if (
+      bookingToDelete !== null
+    ) {
+      await deleteBooking(
+        bookingToDelete
+      ).unwrap();
+    }
 
-              setConfirmOpen(false);
-              setBookingToDelete(null);
-            }}
-          >
-            Delete
-          </Button>
+    setConfirmOpen(false);
+    setBookingToDelete(null);
+  }}
+>
+  {isDeletingBooking ? (
+    <>
+      <CircularProgress
+        size={16}
+        color="inherit"
+        sx={{ mr: 1 }}
+      />
+      Deleting...
+    </>
+  ) : (
+    "Delete"
+  )}
+</Button>
         </DialogActions>
       </Dialog>
     </Box>

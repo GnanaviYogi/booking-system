@@ -4,6 +4,7 @@ import {
   TextField,
   Button,
   Divider,
+  CircularProgress,
 } from "@mui/material";
 
 import BusinessRoundedIcon from "@mui/icons-material/BusinessRounded";
@@ -17,6 +18,7 @@ interface LoginFormProps {
   passwordError: string;
   handleLogin: () => void;
   onSwitch: () => void;
+  isLoading: boolean;
 }
 
 export default function LoginForm({
@@ -28,6 +30,7 @@ export default function LoginForm({
   passwordError,
   handleLogin,
   onSwitch,
+  isLoading,
 }: LoginFormProps) {
   const getFieldStyles = (
     value: string,
@@ -168,42 +171,35 @@ export default function LoginForm({
         )}
       />
 
-      <Button
-        fullWidth
-        variant="contained"
-        onClick={handleLogin}
-        sx={{
-          height: 50,
-
-          mt: 1,
-
-          borderRadius: "14px",
-
-          fontWeight: 700,
-
-          textTransform: "none",
-
-          fontSize: "1rem",
-
-          background:
-            "linear-gradient(135deg,#2563EB,#8B5CF6)",
-
-          boxShadow:
-            "0 0 25px rgba(99,102,241,.35)",
-
-          transition: "all .3s ease",
-
-          "&:hover": {
-            transform: "translateY(-2px)",
-            background:
-              "linear-gradient(135deg,#1D4ED8,#7C3AED)",
-            boxShadow:
-              "0 0 35px rgba(124,58,237,.6)",
-          },
-        }}
-      >
-        Login
-      </Button>
+  <Button
+  fullWidth
+  variant="contained"
+  onClick={handleLogin}
+  disabled={isLoading}
+  sx={{
+    height: 50,
+    mt: 1,
+    borderRadius: "14px",
+    fontWeight: 700,
+    textTransform: "none",
+    fontSize: "1rem",
+    background:
+      "linear-gradient(135deg,#2563EB,#8B5CF6)",
+  }}
+>
+  {isLoading ? (
+    <>
+      <CircularProgress
+        size={18}
+        color="inherit"
+        sx={{ mr: 1 }}
+      />
+      Signing In...
+    </>
+  ) : (
+    "Login"
+  )}
+</Button>
 
       <Divider
         sx={{

@@ -65,11 +65,18 @@ export default function LoginPage() {
       "success"
     );
 
-  const [loginUser] =
-    useLoginMutation();
+  const [
+  loginUser,
+  { isLoading: isLoginLoading },
+] = useLoginMutation();
+  
+   const [
+  registerUser,
+  { isLoading: isRegisterLoading },
+] = useRegisterMutation();
 
-  const [registerUser] =
-    useRegisterMutation();
+
+
 
 useEffect(() => {
   const params =
@@ -251,8 +258,6 @@ localStorage.setItem(
   
 return (
   <>
- 
-
     <AuthLayout>
       {isRegister ? (
         <RegisterForm
@@ -262,28 +267,17 @@ return (
           setEmail={setEmail}
           password={password}
           setPassword={setPassword}
-          confirmPassword={
-            confirmPassword
-          }
-          setConfirmPassword={
-            setConfirmPassword
-          }
-          usernameError={
-            usernameError
-          }
+          confirmPassword={confirmPassword}
+          setConfirmPassword={setConfirmPassword}
+          usernameError={usernameError}
           emailError={emailError}
-          passwordError={
-            passwordError
-          }
-          confirmPasswordError={
-            confirmPasswordError
-          }
-          handleRegister={
-            handleRegister
-          }
+          passwordError={passwordError}
+          confirmPasswordError={confirmPasswordError}
+          handleRegister={handleRegister}
           onSwitch={() =>
             setIsRegister(false)
           }
+          isLoading={isRegisterLoading}
         />
       ) : (
         <LoginForm
@@ -292,27 +286,24 @@ return (
           setEmail={setEmail}
           setPassword={setPassword}
           emailError={emailError}
-          passwordError={
-            passwordError
-          }
-          handleLogin={
-            handleLogin
-          }
+          passwordError={passwordError}
+          handleLogin={handleLogin}
           onSwitch={() =>
             setIsRegister(true)
           }
+          isLoading={isLoginLoading}
         />
       )}
-
-      <StatusSnackbar
-        open={openSnack}
-        message={message}
-        severity={severity}
-        onClose={() =>
-          setOpenSnack(false)
-        }
-      />
     </AuthLayout>
+
+    <StatusSnackbar
+      open={openSnack}
+      message={message}
+      severity={severity}
+      onClose={() =>
+        setOpenSnack(false)
+      }
+    />
   </>
-  );
+);
 }

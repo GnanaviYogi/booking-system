@@ -8,6 +8,7 @@ import {
   Select,
   MenuItem,
   Box,
+  CircularProgress,
   
 } from "@mui/material";
 
@@ -62,7 +63,10 @@ export default function BookingForm({
   const bookings =
     bookingsData?.data || [];
 
-  const [createBooking] = useCreateBookingMutation();
+  const [
+  createBooking,
+  { isLoading: isCreatingBooking },
+] = useCreateBookingMutation();
 
   const { enqueueSnackbar } = useSnackbar();
   const [conflictMessage, setConflictMessage] =
@@ -579,20 +583,33 @@ export default function BookingForm({
 
 
       <Button
-        onClick={handleSubmit(onSubmit)}
-        variant="contained"
-        sx={{
-          px: 4,
-          py: 1,
-          borderRadius: "12px",
-          fontWeight: 700,
-          textTransform: "none",
-          background:
-            "linear-gradient(135deg,#3B82F6,#8B5CF6)",
-        }}
-      >
-        📅 Book Room
-      </Button>
+  onClick={handleSubmit(onSubmit)}
+  variant="contained"
+  disabled={isCreatingBooking}
+  sx={{
+    px: 4,
+    py: 1,
+    borderRadius: "12px",
+    fontWeight: 700,
+    textTransform: "none",
+    background:
+      "linear-gradient(135deg,#3B82F6,#8B5CF6)",
+  }}
+>
+  {isCreatingBooking ? (
+    <>
+      <CircularProgress
+        size={18}
+        color="inherit"
+        sx={{ mr: 1 }}
+      />
+      Creating Booking...
+    </>
+  ) : (
+    "📅 Book Room"
+  )}
+</Button>
+
 
 
 
